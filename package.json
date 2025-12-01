@@ -1,0 +1,57 @@
+{
+  "name": "hublab",
+  "version": "1.0.0",
+  "description": "Universal App Compiler - Generate native iOS, Android, and Web apps from a single prompt",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --ext .ts,.tsx",
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage"
+  },
+  "keywords": [
+    "app-generator",
+    "ios",
+    "android",
+    "swiftui",
+    "jetpack-compose",
+    "code-generation",
+    "native-apps",
+    "ai",
+    "prompt-to-app"
+  ],
+  "author": "HubLab",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hublabdev/hublab.git"
+  },
+  "homepage": "https://hublab.dev",
+  "bugs": {
+    "url": "https://github.com/hublabdev/hublab/issues"
+  },
+  "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "zod": "^3.22.0",
+    "jszip": "^3.10.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.3.0",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.0.0",
+    "vitest": "^1.0.0",
+    "@vitest/coverage-v8": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
