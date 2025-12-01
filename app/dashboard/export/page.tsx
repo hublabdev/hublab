@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
   IconApple,
   IconAndroid,
@@ -15,10 +16,12 @@ import {
   IconRefresh,
   IconZap,
 } from '../../../components/ui/icons'
+import { useProjects } from '../../../lib/hooks/use-projects'
+import { useExport } from '../../../lib/hooks/use-export'
 
-interface ExportTarget {
+interface ExportTargetConfig {
   id: string
-  platform: string
+  platform: 'ios' | 'android' | 'web' | 'desktop'
   framework: string
   icon: React.ComponentType<{ className?: string; size?: number }>
   description: string
@@ -26,10 +29,10 @@ interface ExportTarget {
   color: string
 }
 
-const exportTargets: ExportTarget[] = [
+const exportTargets: ExportTargetConfig[] = [
   {
-    id: 'ios-swiftui',
-    platform: 'iOS',
+    id: 'ios',
+    platform: 'ios',
     framework: 'SwiftUI',
     icon: IconApple,
     description: 'App nativa iOS con SwiftUI, compatible con iOS 15+',
@@ -37,8 +40,8 @@ const exportTargets: ExportTarget[] = [
     color: 'bg-blue-500',
   },
   {
-    id: 'android-compose',
-    platform: 'Android',
+    id: 'android',
+    platform: 'android',
     framework: 'Jetpack Compose',
     icon: IconAndroid,
     description: 'App nativa Android con Jetpack Compose y Material 3',
@@ -46,8 +49,8 @@ const exportTargets: ExportTarget[] = [
     color: 'bg-green-500',
   },
   {
-    id: 'web-react',
-    platform: 'Web',
+    id: 'web',
+    platform: 'web',
     framework: 'React + TypeScript',
     icon: IconGlobe,
     description: 'App web con React, TypeScript y Tailwind CSS',
@@ -55,21 +58,14 @@ const exportTargets: ExportTarget[] = [
     color: 'bg-purple-500',
   },
   {
-    id: 'desktop-tauri',
-    platform: 'Desktop',
+    id: 'desktop',
+    platform: 'desktop',
     framework: 'Tauri',
     icon: IconDesktop,
     description: 'App de escritorio con Tauri para macOS, Windows y Linux',
     fileExtension: '.rs',
     color: 'bg-orange-500',
   },
-]
-
-const mockProjects = [
-  { id: '1', name: 'E-Commerce Pro' },
-  { id: '2', name: 'Admin Dashboard' },
-  { id: '3', name: 'Social App' },
-  { id: '4', name: 'Landing Page' },
 ]
 
 interface ExportFile {
@@ -251,15 +247,34 @@ function FileTree({ files, level = 0 }: { files: ExportFile[]; level?: number })
 }
 
 export default function ExportPage() {
-  const [selectedProject, setSelectedProject] = useState(mockProjects[0].id)
-  const [selectedTargets, setSelectedTargets] = useState<string[]>(['ios-swiftui', 'android-compose'])
+  const searchParams = useSearchParams()
+  const projectIdParam = searchParams.get('project')
+
+  const { projects, loading: projectsLoading } = useProjects()
+  const { isExporting, progress, currentPlatform, results, error, exportProject, reset } = useExport()
+
+  const [selectedProject, setSelectedProject] = useState<string>('')
+  const [selectedTargets, setSelectedTargets] = useState<string[]>(['ios', 'android'])
   const [exportOptions, setExportOptions] = useState({
     includeTests: false,
     includeReadme: true,
     includeEnvExample: true,
   })
-  const [isExporting, setIsExporting] = useState(false)
   const [exportComplete, setExportComplete] = useState(false)
+
+  // Set initial project from URL param or first project
+  useEffect(() => {
+    if (projectIdParam && projects.some((p) => p.id === projectIdParam)) {
+      setSelectedProject(projectIdParam)
+    } else if (projects.length > 0 && !selectedProject) {
+      setSelectedProject(projects[0].id)
+    }
+  }, [projects, projectIdParam, selectedProject])
+
+  const currentProject = useMemo(
+    () => projects.find((p) => p.id === selectedProject),
+    [projects, selectedProject]
+  )
 
   const toggleTarget = (targetId: string) => {
     setSelectedTargets((prev) =>
@@ -267,14 +282,42 @@ export default function ExportPage() {
         ? prev.filter((id) => id !== targetId)
         : [...prev, targetId]
     )
+    setExportComplete(false)
+    reset()
   }
 
   const handleExport = async () => {
-    setIsExporting(true)
-    // Simular exportación
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsExporting(false)
+    if (!currentProject) return
+    setExportComplete(false)
+
+    const targets = selectedTargets.map((id) => {
+      const target = exportTargets.find((t) => t.id === id)!
+      return {
+        platform: target.platform,
+        options: {
+          includeTests: exportOptions.includeTests,
+        },
+      }
+    })
+
+    await exportProject(currentProject, targets)
     setExportComplete(true)
+  }
+
+  const totalLinesGenerated = useMemo(() => {
+    return results.reduce((acc, r) => acc + r.linesOfCode, 0)
+  }, [results])
+
+  const totalFilesGenerated = useMemo(() => {
+    return results.reduce((acc, r) => acc + r.files.length, 0)
+  }, [results])
+
+  if (projectsLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <IconRefresh className="animate-spin text-primary" size={32} />
+      </div>
+    )
   }
 
   return (
@@ -296,10 +339,14 @@ export default function ExportPage() {
             <div className="mt-4 relative">
               <select
                 value={selectedProject}
-                onChange={(e) => setSelectedProject(e.target.value)}
+                onChange={(e) => {
+                  setSelectedProject(e.target.value)
+                  setExportComplete(false)
+                  reset()
+                }}
                 className="w-full appearance-none rounded-lg border border-input bg-background py-3 pl-4 pr-10 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               >
-                {mockProjects.map((project) => (
+                {projects.map((project) => (
                   <option key={project.id} value={project.id}>
                     {project.name}
                   </option>
@@ -307,6 +354,11 @@ export default function ExportPage() {
               </select>
               <IconChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" size={16} />
             </div>
+            {currentProject && (
+              <div className="mt-2 text-sm text-muted-foreground">
+                {currentProject.capsules?.length || 0} cápsulas en el proyecto
+              </div>
+            )}
           </div>
 
           {/* Target Platforms */}
@@ -391,10 +443,11 @@ export default function ExportPage() {
           {/* Export Button */}
           <div className="flex items-center gap-4">
             <button
+              type="button"
               onClick={handleExport}
-              disabled={selectedTargets.length === 0 || isExporting}
+              disabled={selectedTargets.length === 0 || isExporting || !currentProject}
               className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-medium transition-colors ${
-                selectedTargets.length === 0
+                selectedTargets.length === 0 || !currentProject
                   ? 'bg-muted text-muted-foreground cursor-not-allowed'
                   : 'bg-primary text-primary-foreground hover:bg-primary/90'
               }`}
@@ -402,9 +455,9 @@ export default function ExportPage() {
               {isExporting ? (
                 <>
                   <IconRefresh size={16} className="animate-spin" />
-                  Generando código nativo...
+                  Generando {currentPlatform}... ({progress}%)
                 </>
-              ) : exportComplete ? (
+              ) : exportComplete && results.length > 0 ? (
                 <>
                   <IconCheck size={16} />
                   Exportación Completa
@@ -418,7 +471,31 @@ export default function ExportPage() {
             </button>
           </div>
 
-          {exportComplete && (
+          {/* Progress Bar */}
+          {isExporting && (
+            <div className="rounded-xl border border-border bg-background p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Compilando {currentPlatform}...</span>
+                <span className="text-sm text-muted-foreground">{progress}%</span>
+              </div>
+              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Error */}
+          {error && (
+            <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-4">
+              <div className="font-medium text-destructive">Error en la exportación</div>
+              <div className="mt-1 text-sm text-destructive/80">{error}</div>
+            </div>
+          )}
+
+          {exportComplete && results.length > 0 && (
             <div className="rounded-xl border border-green-500/50 bg-green-500/10 p-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500 text-white">
@@ -429,18 +506,38 @@ export default function ExportPage() {
                     Exportación completada con éxito
                   </div>
                   <div className="text-sm text-green-600 dark:text-green-400">
-                    Se han generado {selectedTargets.length * 12} archivos en {selectedTargets.length} plataforma{selectedTargets.length !== 1 ? 's' : ''}
+                    Se han generado {totalFilesGenerated} archivos ({totalLinesGenerated.toLocaleString()} líneas de código) en {results.length} plataforma{results.length !== 1 ? 's' : ''}
                   </div>
                 </div>
               </div>
+
+              {/* Results by platform */}
+              <div className="mt-4 space-y-2">
+                {results.map((result) => {
+                  const target = exportTargets.find((t) => t.platform === result.platform)
+                  if (!target) return null
+                  return (
+                    <div key={result.platform} className="flex items-center justify-between rounded-lg bg-white/50 dark:bg-black/20 px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <target.icon size={16} className="text-green-600" />
+                        <span className="text-sm font-medium">{target.framework}</span>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {result.files.length} archivos · {result.linesOfCode.toLocaleString()} líneas
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
               <div className="mt-4 flex gap-2">
-                <button className="flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-600 transition-colors">
+                <button type="button" className="flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-600 transition-colors">
                   <IconDownload size={16} />
                   Descargar ZIP
                 </button>
-                <button className="flex items-center gap-2 rounded-lg border border-green-500 px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-500/10 transition-colors dark:text-green-300">
+                <button type="button" className="flex items-center gap-2 rounded-lg border border-green-500 px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-500/10 transition-colors dark:text-green-300">
                   <IconCode size={16} />
-                  Ver en GitHub
+                  Ver Código
                 </button>
               </div>
             </div>
@@ -457,22 +554,55 @@ export default function ExportPage() {
             </div>
           </div>
 
-          {selectedTargets.length > 0 ? (
+          {/* Show real results if available */}
+          {results.length > 0 ? (
+            <div className="mt-4 space-y-4">
+              {results.map((result) => {
+                const target = exportTargets.find((t) => t.platform === result.platform)
+                if (!target) return null
+
+                // Convert result files to tree structure
+                const fileTree: ExportFile[] = result.files.slice(0, 10).map((file) => ({
+                  name: file.split('/').pop() || file,
+                  path: file,
+                  type: 'file' as const,
+                }))
+
+                return (
+                  <div key={result.platform} className="rounded-lg border border-border p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <target.icon size={14} className="text-muted-foreground" />
+                      <span className="text-sm font-medium">{target.platform.toUpperCase()}</span>
+                      <span className="text-xs text-muted-foreground">({target.framework})</span>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto">
+                      <FileTree files={fileTree} />
+                      {result.files.length > 10 && (
+                        <div className="text-xs text-muted-foreground mt-2 pl-6">
+                          +{result.files.length - 10} archivos más...
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : selectedTargets.length > 0 ? (
             <div className="mt-4 space-y-4">
               {selectedTargets.map((targetId) => {
                 const target = exportTargets.find((t) => t.id === targetId)
-                const files = mockExportPreview[targetId]
-                if (!target || !files) return null
+                const files = mockExportPreview[targetId] || mockExportPreview['web-react']
+                if (!target) return null
 
                 return (
                   <div key={targetId} className="rounded-lg border border-border p-3">
                     <div className="flex items-center gap-2 mb-2">
                       <target.icon size={14} className="text-muted-foreground" />
-                      <span className="text-sm font-medium">{target.platform}</span>
+                      <span className="text-sm font-medium">{target.platform.toUpperCase()}</span>
                       <span className="text-xs text-muted-foreground">({target.framework})</span>
                     </div>
                     <div className="max-h-48 overflow-y-auto">
-                      <FileTree files={files} />
+                      {files && <FileTree files={files} />}
                     </div>
                   </div>
                 )
@@ -492,15 +622,15 @@ export default function ExportPage() {
             <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
               <div>
                 <span className="text-muted-foreground">Plataformas:</span>
-                <span className="ml-1 font-medium">{selectedTargets.length}</span>
+                <span className="ml-1 font-medium">{results.length > 0 ? results.length : selectedTargets.length}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Archivos:</span>
-                <span className="ml-1 font-medium">~{selectedTargets.length * 12}</span>
+                <span className="ml-1 font-medium">{results.length > 0 ? totalFilesGenerated : `~${selectedTargets.length * 12}`}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">Tamaño est.:</span>
-                <span className="ml-1 font-medium">{selectedTargets.length * 45} KB</span>
+                <span className="text-muted-foreground">Líneas:</span>
+                <span className="ml-1 font-medium">{results.length > 0 ? totalLinesGenerated.toLocaleString() : `~${selectedTargets.length * 800}`}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Tests:</span>

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import { useProjects } from '../../../lib/hooks/use-projects'
 import {
   IconPlus,
   IconSearch,
@@ -15,77 +16,8 @@ import {
   IconEye,
   IconCopy,
   IconDownload,
+  IconRefresh,
 } from '../../../components/ui/icons'
-
-interface Project {
-  id: string
-  name: string
-  description: string
-  template: string
-  platforms: string[]
-  capsuleCount: number
-  status: 'draft' | 'building' | 'ready' | 'deployed' | 'error'
-  createdAt: string
-  updatedAt: string
-}
-
-const mockProjects: Project[] = [
-  {
-    id: '1',
-    name: 'E-Commerce Pro',
-    description: 'Tienda online completa con carrito, pagos y gestión de pedidos',
-    template: 'ecommerce',
-    platforms: ['ios', 'android', 'web'],
-    capsuleCount: 24,
-    status: 'ready',
-    createdAt: '2024-01-15',
-    updatedAt: '2024-01-20',
-  },
-  {
-    id: '2',
-    name: 'Admin Dashboard',
-    description: 'Panel de administración con gráficos, tablas y reportes',
-    template: 'admin',
-    platforms: ['web', 'desktop'],
-    capsuleCount: 18,
-    status: 'deployed',
-    createdAt: '2024-01-10',
-    updatedAt: '2024-01-19',
-  },
-  {
-    id: '3',
-    name: 'Social App',
-    description: 'Red social con feed, perfiles, chat y notificaciones',
-    template: 'blank',
-    platforms: ['ios', 'android'],
-    capsuleCount: 32,
-    status: 'building',
-    createdAt: '2024-01-18',
-    updatedAt: '2024-01-20',
-  },
-  {
-    id: '4',
-    name: 'Landing Page',
-    description: 'Página de aterrizaje para producto SaaS',
-    template: 'landing',
-    platforms: ['web'],
-    capsuleCount: 8,
-    status: 'ready',
-    createdAt: '2024-01-12',
-    updatedAt: '2024-01-14',
-  },
-  {
-    id: '5',
-    name: 'Blog Personal',
-    description: 'Blog con editor markdown y sistema de comentarios',
-    template: 'blog',
-    platforms: ['web'],
-    capsuleCount: 12,
-    status: 'draft',
-    createdAt: '2024-01-19',
-    updatedAt: '2024-01-19',
-  },
-]
 
 const platformIcons: Record<string, React.ComponentType<{ className?: string; size?: number }>> = {
   ios: IconApple,
@@ -111,20 +43,65 @@ const templateLabels: Record<string, string> = {
   blog: 'Blog',
 }
 
+// Helper to extract platforms from project template
+function getProjectPlatforms(template: string | undefined): string[] {
+  const platformMap: Record<string, string[]> = {
+    ecommerce: ['ios', 'android', 'web'],
+    admin: ['web', 'desktop'],
+    blank: ['ios', 'android'],
+    landing: ['web'],
+    blog: ['web'],
+    dashboard: ['web', 'desktop'],
+  }
+  return platformMap[template || 'blank'] || ['web']
+}
+
 export default function ProjectsPage() {
+  const { projects, loading, error, deleteProject, fetchProjects } = useProjects()
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [platformFilter, setPlatformFilter] = useState<string>('all')
   const [view, setView] = useState<'grid' | 'list'>('grid')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  const filteredProjects = mockProjects.filter((project) => {
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de eliminar este proyecto?')) return
+    setDeletingId(id)
+    try {
+      await deleteProject(id)
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  const filteredProjects = projects.filter((project) => {
     const matchesSearch =
       project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.description.toLowerCase().includes(searchQuery.toLowerCase())
+      (project.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
     const matchesStatus = statusFilter === 'all' || project.status === statusFilter
-    const matchesPlatform = platformFilter === 'all' || project.platforms.includes(platformFilter)
+    const platforms = getProjectPlatforms(project.template)
+    const matchesPlatform = platformFilter === 'all' || platforms.includes(platformFilter)
     return matchesSearch && matchesStatus && matchesPlatform
   })
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <IconRefresh className="animate-spin text-primary" size={32} />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-destructive">{error}</p>
+        <button type="button" onClick={fetchProjects} className="mt-4 text-primary hover:underline">
+          Reintentar
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -133,7 +110,7 @@ export default function ProjectsPage() {
         <div>
           <h1 className="text-2xl font-bold">Proyectos</h1>
           <p className="text-muted-foreground">
-            {mockProjects.length} proyectos en total
+            {projects.length} proyecto{projects.length !== 1 ? 's' : ''} en total
           </p>
         </div>
         <Link
@@ -212,73 +189,91 @@ export default function ProjectsPage() {
       {/* Projects Grid/List */}
       {view === 'grid' ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredProjects.map((project) => (
-            <div
-              key={project.id}
-              className="group rounded-xl border border-border bg-background p-6 transition-all hover:border-primary hover:shadow-lg"
-            >
-              {/* Header */}
-              <div className="flex items-start justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-purple-600 text-white font-bold text-lg">
-                  {project.name[0]}
+          {filteredProjects.map((project) => {
+            const platforms = getProjectPlatforms(project.template)
+            return (
+              <div
+                key={project.id}
+                className={`group rounded-xl border border-border bg-background p-6 transition-all hover:border-primary hover:shadow-lg ${
+                  deletingId === project.id ? 'opacity-50' : ''
+                }`}
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-purple-600 text-white font-bold text-lg">
+                    {project.name[0]}
+                  </div>
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[project.status]?.bg || 'bg-gray-100'} ${statusStyles[project.status]?.text || 'text-gray-700'}`}>
+                    {statusStyles[project.status]?.label || project.status}
+                  </span>
                 </div>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[project.status].bg} ${statusStyles[project.status].text}`}>
-                  {statusStyles[project.status].label}
-                </span>
-              </div>
 
-              {/* Content */}
-              <div className="mt-4">
-                <h3 className="font-semibold">{project.name}</h3>
-                <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
-                  {project.description}
-                </p>
-              </div>
+                {/* Content */}
+                <div className="mt-4">
+                  <h3 className="font-semibold">{project.name}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                    {project.description || 'Sin descripción'}
+                  </p>
+                </div>
 
-              {/* Meta */}
-              <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
-                <span className="rounded bg-muted px-2 py-0.5 text-xs">
-                  {templateLabels[project.template]}
-                </span>
-                <span>{project.capsuleCount} cápsulas</span>
-              </div>
+                {/* Meta */}
+                <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
+                  <span className="rounded bg-muted px-2 py-0.5 text-xs">
+                    {templateLabels[project.template || 'blank'] || project.template}
+                  </span>
+                  <span>{project.capsules?.length || 0} cápsulas</span>
+                </div>
 
-              {/* Platforms */}
-              <div className="mt-4 flex items-center gap-2">
-                {project.platforms.map((platform) => {
-                  const Icon = platformIcons[platform]
-                  return (
-                    <div
-                      key={platform}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted"
-                      title={platform.charAt(0).toUpperCase() + platform.slice(1)}
-                    >
-                      <Icon size={16} className="text-muted-foreground" />
-                    </div>
-                  )
-                })}
-              </div>
+                {/* Platforms */}
+                <div className="mt-4 flex items-center gap-2">
+                  {platforms.map((platform) => {
+                    const Icon = platformIcons[platform]
+                    return (
+                      <div
+                        key={platform}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted"
+                        title={platform.charAt(0).toUpperCase() + platform.slice(1)}
+                      >
+                        <Icon size={16} className="text-muted-foreground" />
+                      </div>
+                    )
+                  })}
+                </div>
 
-              {/* Actions */}
-              <div className="mt-4 flex items-center gap-2 border-t border-border pt-4">
-                <Link
-                  href={`/dashboard/projects/${project.id}`}
-                  className="flex-1 rounded-lg bg-primary px-3 py-2 text-center text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-                >
-                  Abrir
-                </Link>
-                <button className="rounded-lg p-2 hover:bg-muted transition-colors" title="Preview">
-                  <IconEye size={16} className="text-muted-foreground" />
-                </button>
-                <button className="rounded-lg p-2 hover:bg-muted transition-colors" title="Duplicar">
-                  <IconCopy size={16} className="text-muted-foreground" />
-                </button>
-                <button className="rounded-lg p-2 hover:bg-muted transition-colors" title="Exportar">
-                  <IconDownload size={16} className="text-muted-foreground" />
-                </button>
+                {/* Actions */}
+                <div className="mt-4 flex items-center gap-2 border-t border-border pt-4">
+                  <Link
+                    href={`/dashboard/projects/${project.id}`}
+                    className="flex-1 rounded-lg bg-primary px-3 py-2 text-center text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                  >
+                    Abrir
+                  </Link>
+                  <button type="button" className="rounded-lg p-2 hover:bg-muted transition-colors" title="Preview">
+                    <IconEye size={16} className="text-muted-foreground" />
+                  </button>
+                  <button type="button" className="rounded-lg p-2 hover:bg-muted transition-colors" title="Duplicar">
+                    <IconCopy size={16} className="text-muted-foreground" />
+                  </button>
+                  <Link
+                    href={`/dashboard/export?project=${project.id}`}
+                    className="rounded-lg p-2 hover:bg-muted transition-colors"
+                    title="Exportar"
+                  >
+                    <IconDownload size={16} className="text-muted-foreground" />
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(project.id)}
+                    disabled={deletingId === project.id}
+                    className="rounded-lg p-2 hover:bg-destructive/10 transition-colors"
+                    title="Eliminar"
+                  >
+                    <IconTrash size={16} className="text-destructive" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
 
           {/* New Project Card */}
           <Link
@@ -321,64 +316,73 @@ export default function ProjectsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filteredProjects.map((project) => (
-                <tr key={project.id} className="hover:bg-muted/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-purple-600 text-white font-bold">
-                        {project.name[0]}
+              {filteredProjects.map((project) => {
+                const platforms = getProjectPlatforms(project.template)
+                return (
+                  <tr key={project.id} className={`hover:bg-muted/50 transition-colors ${deletingId === project.id ? 'opacity-50' : ''}`}>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-purple-600 text-white font-bold">
+                          {project.name[0]}
+                        </div>
+                        <div>
+                          <div className="font-medium">{project.name}</div>
+                          <div className="text-sm text-muted-foreground">{project.description || 'Sin descripción'}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-medium">{project.name}</div>
-                        <div className="text-sm text-muted-foreground">{project.description}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-1">
+                        {platforms.map((platform) => {
+                          const Icon = platformIcons[platform]
+                          return (
+                            <div key={platform} className="flex h-7 w-7 items-center justify-center rounded bg-muted">
+                              <Icon size={14} className="text-muted-foreground" />
+                            </div>
+                          )
+                        })}
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-1">
-                      {project.platforms.map((platform) => {
-                        const Icon = platformIcons[platform]
-                        return (
-                          <div key={platform} className="flex h-7 w-7 items-center justify-center rounded bg-muted">
-                            <Icon size={14} className="text-muted-foreground" />
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[project.status].bg} ${statusStyles[project.status].text}`}>
-                      {statusStyles[project.status].label}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground">
-                    {project.capsuleCount}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground">
-                    {project.updatedAt}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-end gap-1">
-                      <Link
-                        href={`/dashboard/projects/${project.id}`}
-                        className="rounded-lg p-2 hover:bg-muted transition-colors"
-                        title="Editar"
-                      >
-                        <IconEdit size={16} className="text-muted-foreground" />
-                      </Link>
-                      <button className="rounded-lg p-2 hover:bg-muted transition-colors" title="Preview">
-                        <IconEye size={16} className="text-muted-foreground" />
-                      </button>
-                      <button className="rounded-lg p-2 hover:bg-muted transition-colors" title="Duplicar">
-                        <IconCopy size={16} className="text-muted-foreground" />
-                      </button>
-                      <button className="rounded-lg p-2 hover:bg-destructive/10 transition-colors" title="Eliminar">
-                        <IconTrash size={16} className="text-destructive" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[project.status]?.bg || 'bg-gray-100'} ${statusStyles[project.status]?.text || 'text-gray-700'}`}>
+                        {statusStyles[project.status]?.label || project.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                      {project.capsules?.length || 0}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                      {new Date(project.updatedAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-1">
+                        <Link
+                          href={`/dashboard/projects/${project.id}`}
+                          className="rounded-lg p-2 hover:bg-muted transition-colors"
+                          title="Editar"
+                        >
+                          <IconEdit size={16} className="text-muted-foreground" />
+                        </Link>
+                        <button type="button" className="rounded-lg p-2 hover:bg-muted transition-colors" title="Preview">
+                          <IconEye size={16} className="text-muted-foreground" />
+                        </button>
+                        <button type="button" className="rounded-lg p-2 hover:bg-muted transition-colors" title="Duplicar">
+                          <IconCopy size={16} className="text-muted-foreground" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(project.id)}
+                          disabled={deletingId === project.id}
+                          className="rounded-lg p-2 hover:bg-destructive/10 transition-colors"
+                          title="Eliminar"
+                        >
+                          <IconTrash size={16} className="text-destructive" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -387,10 +391,12 @@ export default function ProjectsPage() {
       {/* Empty state */}
       {filteredProjects.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-background py-12">
-          <IconProjects size={48} className="text-muted-foreground" />
+          <IconSearch size={48} className="text-muted-foreground" />
           <div className="mt-4 text-lg font-medium">No se encontraron proyectos</div>
           <div className="mt-1 text-sm text-muted-foreground">
-            Intenta con otros filtros o crea un nuevo proyecto
+            {projects.length === 0
+              ? 'Crea tu primer proyecto para empezar'
+              : 'Intenta con otros filtros'}
           </div>
           <Link
             href="/dashboard/projects/new"
