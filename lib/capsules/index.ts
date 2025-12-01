@@ -60,6 +60,14 @@ export { TimelineCapsule } from './timeline'
 export { BottomSheetCapsule } from './bottom-sheet'
 export { PopoverCapsule } from './popover'
 
+// Media & Advanced Input Components
+export { ColorPickerCapsule } from './color-picker'
+export { RichTextEditorCapsule } from './rich-text-editor'
+export { SignatureCapsule } from './signature'
+export { MapCapsule } from './map'
+export { VideoCapsule } from './video'
+export { AudioCapsule } from './audio'
+
 // Capsule Registry
 import type { CapsuleDefinition } from './types'
 import { ButtonCapsule } from './button'
@@ -97,6 +105,12 @@ import { CarouselCapsule } from './carousel'
 import { TimelineCapsule } from './timeline'
 import { BottomSheetCapsule } from './bottom-sheet'
 import { PopoverCapsule } from './popover'
+import { ColorPickerCapsule } from './color-picker'
+import { RichTextEditorCapsule } from './rich-text-editor'
+import { SignatureCapsule } from './signature'
+import { MapCapsule } from './map'
+import { VideoCapsule } from './video'
+import { AudioCapsule } from './audio'
 
 const capsuleRegistry = new Map<string, CapsuleDefinition>()
 
@@ -160,6 +174,14 @@ const builtInCapsules: CapsuleDefinition[] = [
   TimelineCapsule,
   BottomSheetCapsule,
   PopoverCapsule,
+
+  // Media & Advanced Input Components
+  ColorPickerCapsule,
+  RichTextEditorCapsule,
+  SignatureCapsule,
+  MapCapsule,
+  VideoCapsule,
+  AudioCapsule,
 ]
 
 builtInCapsules.forEach(capsule => {
