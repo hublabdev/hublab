@@ -40,6 +40,18 @@ export { DatePickerCapsule } from './datepicker'
 export { ProgressCapsule } from './progress'
 export { TooltipCapsule } from './tooltip'
 
+// Data Display
+export { TableCapsule } from './table'
+export { SearchBarCapsule } from './searchbar'
+
+// Input Controls
+export { RatingCapsule } from './rating'
+export { StepperCapsule } from './stepper'
+export { ChipCapsule } from './chip'
+
+// Layout
+export { DividerCapsule } from './divider'
+
 // Capsule Registry
 import type { CapsuleDefinition } from './types'
 import { ButtonCapsule } from './button'
@@ -65,6 +77,12 @@ import { DropdownCapsule } from './dropdown'
 import { DatePickerCapsule } from './datepicker'
 import { ProgressCapsule } from './progress'
 import { TooltipCapsule } from './tooltip'
+import { TableCapsule } from './table'
+import { SearchBarCapsule } from './searchbar'
+import { RatingCapsule } from './rating'
+import { StepperCapsule } from './stepper'
+import { ChipCapsule } from './chip'
+import { DividerCapsule } from './divider'
 
 const capsuleRegistry = new Map<string, CapsuleDefinition>()
 
@@ -108,6 +126,18 @@ const builtInCapsules: CapsuleDefinition[] = [
   // Form Controls
   DropdownCapsule,
   DatePickerCapsule,
+
+  // Data Display
+  TableCapsule,
+  SearchBarCapsule,
+
+  // Input Controls
+  RatingCapsule,
+  StepperCapsule,
+  ChipCapsule,
+
+  // Layout
+  DividerCapsule,
 ]
 
 builtInCapsules.forEach(capsule => {
