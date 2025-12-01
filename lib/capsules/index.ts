@@ -78,6 +78,14 @@ export { QRCodeCapsule } from './qrcode'
 export { ScannerCapsule } from './scanner'
 export { PDFViewerCapsule } from './pdf-viewer'
 
+// Device & Native Capabilities
+export { NotificationsCapsule } from './notifications'
+export { WebViewCapsule } from './webview'
+export { BiometricsCapsule } from './biometrics'
+export { LocationCapsule } from './location'
+export { CameraCapsule } from './camera'
+export { SocialShareCapsule } from './social-share'
+
 // Capsule Registry
 import type { CapsuleDefinition } from './types'
 import { ButtonCapsule } from './button'
@@ -127,6 +135,12 @@ import { ChatCapsule } from './chat'
 import { QRCodeCapsule } from './qrcode'
 import { ScannerCapsule } from './scanner'
 import { PDFViewerCapsule } from './pdf-viewer'
+import { NotificationsCapsule } from './notifications'
+import { WebViewCapsule } from './webview'
+import { BiometricsCapsule } from './biometrics'
+import { LocationCapsule } from './location'
+import { CameraCapsule } from './camera'
+import { SocialShareCapsule } from './social-share'
 
 const capsuleRegistry = new Map<string, CapsuleDefinition>()
 
@@ -208,6 +222,14 @@ const builtInCapsules: CapsuleDefinition[] = [
   QRCodeCapsule,
   ScannerCapsule,
   PDFViewerCapsule,
+
+  // Device & Native Capabilities
+  NotificationsCapsule,
+  WebViewCapsule,
+  BiometricsCapsule,
+  LocationCapsule,
+  CameraCapsule,
+  SocialShareCapsule,
 ]
 
 builtInCapsules.forEach(capsule => {
