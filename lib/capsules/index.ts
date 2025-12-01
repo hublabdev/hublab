@@ -52,6 +52,14 @@ export { ChipCapsule } from './chip'
 // Layout
 export { DividerCapsule } from './divider'
 
+// Advanced Interactive Components
+export { CalendarCapsule } from './calendar'
+export { FileUploadCapsule } from './file-upload'
+export { CarouselCapsule } from './carousel'
+export { TimelineCapsule } from './timeline'
+export { BottomSheetCapsule } from './bottom-sheet'
+export { PopoverCapsule } from './popover'
+
 // Capsule Registry
 import type { CapsuleDefinition } from './types'
 import { ButtonCapsule } from './button'
@@ -83,6 +91,12 @@ import { RatingCapsule } from './rating'
 import { StepperCapsule } from './stepper'
 import { ChipCapsule } from './chip'
 import { DividerCapsule } from './divider'
+import { CalendarCapsule } from './calendar'
+import { FileUploadCapsule } from './file-upload'
+import { CarouselCapsule } from './carousel'
+import { TimelineCapsule } from './timeline'
+import { BottomSheetCapsule } from './bottom-sheet'
+import { PopoverCapsule } from './popover'
 
 const capsuleRegistry = new Map<string, CapsuleDefinition>()
 
@@ -138,6 +152,14 @@ const builtInCapsules: CapsuleDefinition[] = [
 
   // Layout
   DividerCapsule,
+
+  // Advanced Interactive Components
+  CalendarCapsule,
+  FileUploadCapsule,
+  CarouselCapsule,
+  TimelineCapsule,
+  BottomSheetCapsule,
+  PopoverCapsule,
 ]
 
 builtInCapsules.forEach(capsule => {
