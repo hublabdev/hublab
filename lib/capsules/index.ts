@@ -68,6 +68,16 @@ export { MapCapsule } from './map'
 export { VideoCapsule } from './video'
 export { AudioCapsule } from './audio'
 
+// Data Management & Business Components
+export { DataTableCapsule } from './data-table'
+export { KanbanCapsule } from './kanban'
+export { ChatCapsule } from './chat'
+
+// Utility & Document Components
+export { QRCodeCapsule } from './qrcode'
+export { ScannerCapsule } from './scanner'
+export { PDFViewerCapsule } from './pdf-viewer'
+
 // Capsule Registry
 import type { CapsuleDefinition } from './types'
 import { ButtonCapsule } from './button'
@@ -111,6 +121,12 @@ import { SignatureCapsule } from './signature'
 import { MapCapsule } from './map'
 import { VideoCapsule } from './video'
 import { AudioCapsule } from './audio'
+import { DataTableCapsule } from './data-table'
+import { KanbanCapsule } from './kanban'
+import { ChatCapsule } from './chat'
+import { QRCodeCapsule } from './qrcode'
+import { ScannerCapsule } from './scanner'
+import { PDFViewerCapsule } from './pdf-viewer'
 
 const capsuleRegistry = new Map<string, CapsuleDefinition>()
 
@@ -182,6 +198,16 @@ const builtInCapsules: CapsuleDefinition[] = [
   MapCapsule,
   VideoCapsule,
   AudioCapsule,
+
+  // Data Management & Business Components
+  DataTableCapsule,
+  KanbanCapsule,
+  ChatCapsule,
+
+  // Utility & Document Components
+  QRCodeCapsule,
+  ScannerCapsule,
+  PDFViewerCapsule,
 ]
 
 builtInCapsules.forEach(capsule => {
