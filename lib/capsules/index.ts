@@ -19,6 +19,15 @@ export { FormCapsule } from './form'
 export { NavigationCapsule } from './navigation'
 export { AuthScreenCapsule } from './auth-screen'
 
+// Advanced UI Components
+export { ChartCapsule } from './chart'
+export { AvatarCapsule } from './avatar'
+export { BadgeCapsule } from './badge'
+export { ToastCapsule } from './toast'
+export { SkeletonCapsule } from './skeleton'
+export { SwitchCapsule } from './switch'
+export { SliderCapsule } from './slider'
+
 // Capsule Registry
 import type { CapsuleDefinition } from './types'
 import { ButtonCapsule } from './button'
@@ -31,6 +40,13 @@ import { ModalCapsule } from './modal'
 import { FormCapsule } from './form'
 import { NavigationCapsule } from './navigation'
 import { AuthScreenCapsule } from './auth-screen'
+import { ChartCapsule } from './chart'
+import { AvatarCapsule } from './avatar'
+import { BadgeCapsule } from './badge'
+import { ToastCapsule } from './toast'
+import { SkeletonCapsule } from './skeleton'
+import { SwitchCapsule } from './switch'
+import { SliderCapsule } from './slider'
 
 const capsuleRegistry = new Map<string, CapsuleDefinition>()
 
@@ -50,9 +66,20 @@ const builtInCapsules: CapsuleDefinition[] = [
 
   // Forms
   FormCapsule,
+  SwitchCapsule,
+  SliderCapsule,
 
   // Screens
   AuthScreenCapsule,
+
+  // Data Visualization
+  ChartCapsule,
+
+  // Feedback & Loading
+  ToastCapsule,
+  SkeletonCapsule,
+  BadgeCapsule,
+  AvatarCapsule,
 ]
 
 builtInCapsules.forEach(capsule => {
