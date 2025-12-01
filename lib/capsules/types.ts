@@ -218,8 +218,9 @@ export interface WebAppConfig {
   framework: WebFramework
   typescript: boolean
   styling: 'tailwind' | 'css-modules' | 'styled-components' | 'emotion'
-  ssr: boolean
-  pwa: boolean
+  bundler?: 'vite' | 'webpack' | 'next'
+  ssr?: boolean
+  pwa?: boolean
 }
 
 export interface IOSAppConfig {
