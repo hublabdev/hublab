@@ -28,6 +28,18 @@ export { SkeletonCapsule } from './skeleton'
 export { SwitchCapsule } from './switch'
 export { SliderCapsule } from './slider'
 
+// Navigation & Layout
+export { TabsCapsule } from './tabs'
+export { AccordionCapsule } from './accordion'
+
+// Form Controls
+export { DropdownCapsule } from './dropdown'
+export { DatePickerCapsule } from './datepicker'
+
+// Feedback
+export { ProgressCapsule } from './progress'
+export { TooltipCapsule } from './tooltip'
+
 // Capsule Registry
 import type { CapsuleDefinition } from './types'
 import { ButtonCapsule } from './button'
@@ -47,6 +59,12 @@ import { ToastCapsule } from './toast'
 import { SkeletonCapsule } from './skeleton'
 import { SwitchCapsule } from './switch'
 import { SliderCapsule } from './slider'
+import { TabsCapsule } from './tabs'
+import { AccordionCapsule } from './accordion'
+import { DropdownCapsule } from './dropdown'
+import { DatePickerCapsule } from './datepicker'
+import { ProgressCapsule } from './progress'
+import { TooltipCapsule } from './tooltip'
 
 const capsuleRegistry = new Map<string, CapsuleDefinition>()
 
@@ -80,6 +98,16 @@ const builtInCapsules: CapsuleDefinition[] = [
   SkeletonCapsule,
   BadgeCapsule,
   AvatarCapsule,
+  ProgressCapsule,
+  TooltipCapsule,
+
+  // Navigation & Layout
+  TabsCapsule,
+  AccordionCapsule,
+
+  // Form Controls
+  DropdownCapsule,
+  DatePickerCapsule,
 ]
 
 builtInCapsules.forEach(capsule => {
