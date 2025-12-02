@@ -764,103 +764,501 @@ ${components}
 
 function generateComponentCode(capsule: CapsuleInstance, platform: string): string {
   const def = getCapsuleDefinition(capsule.type)
-  const name = def?.name || capsule.type
+  const name = def?.name?.replace(/\s+/g, '') || capsule.type
+  const props = capsule.props
 
-  if (capsule.type === 'button') {
-    return `function ${name}() {
+  const generators: Record<string, () => string> = {
+    button: () => `function ${name}({ onClick }) {
   return (
-    <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">
-      ${capsule.props.label || 'Button'}
+    <button
+      onClick={onClick}
+      className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+    >
+      ${props.label || 'Button'}
     </button>
   )
+}`,
+    text: () => {
+      const variant = props.variant || 'body'
+      const content = props.content || 'Text'
+      return `function ${name}() {
+  const variants = { h1: 'text-4xl font-bold', h2: 'text-3xl font-bold', h3: 'text-2xl font-semibold', body: 'text-base', caption: 'text-sm text-gray-500' }
+  return <p className={variants['${variant}']}>${content}</p>
 }`
-  }
-
-  if (capsule.type === 'text') {
-    return `function ${name}() {
+    },
+    input: () => `function ${name}({ value, onChange }) {
   return (
-    <p className="text-gray-900">
-      ${capsule.props.content || 'Text'}
-    </p>
+    <div>
+      ${props.label ? `<label className="block text-sm font-medium mb-1">${props.label}</label>` : ''}
+      <input
+        type="${props.type || 'text'}"
+        value={value}
+        onChange={onChange}
+        placeholder="${props.placeholder || ''}"
+        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+      />
+    </div>
   )
-}`
-  }
-
-  if (capsule.type === 'input') {
-    return `function ${name}() {
-  const [value, setValue] = React.useState('')
+}`,
+    card: () => `function ${name}({ children }) {
   return (
-    <input
-      type="${capsule.props.type || 'text'}"
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
-      placeholder="${capsule.props.placeholder || ''}"
-      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+    <div className="bg-white rounded-xl shadow-md p-${props.padding === 'lg' ? '8' : props.padding === 'sm' ? '3' : '6'}">
+      ${props.title ? `<h3 className="text-lg font-semibold mb-2">${props.title}</h3>` : ''}
+      ${props.subtitle ? `<p className="text-gray-500 mb-4">${props.subtitle}</p>` : ''}
+      {children}
+    </div>
+  )
+}`,
+    image: () => `function ${name}() {
+  return (
+    <img
+      src="${props.src || 'https://picsum.photos/400/300'}"
+      alt="${props.alt || 'Image'}"
+      className="w-full rounded-lg object-cover aspect-[${(props.aspectRatio as string)?.replace(':', '/') || '16/9'}]"
     />
   )
+}`,
+    avatar: () => {
+      const size = props.size || 'md'
+      const userName = props.name || 'User'
+      return `function ${name}() {
+  const sizes = { sm: 'w-8 h-8', md: 'w-12 h-12', lg: 'w-16 h-16', xl: 'w-24 h-24' }
+  const initials = '${userName}'.split(' ').map(n => n[0]).join('').toUpperCase()
+  const sizeClass = sizes['${size}']
+  return (
+    <div className={sizeClass + ' rounded-full bg-primary text-white flex items-center justify-center font-medium'}>
+      {initials}
+    </div>
+  )
 }`
+    },
+    badge: () => {
+      const variant = props.variant || 'primary'
+      const label = props.label || 'Badge'
+      return `function ${name}() {
+  const variants = { primary: 'bg-blue-100 text-blue-800', success: 'bg-green-100 text-green-800', warning: 'bg-yellow-100 text-yellow-800', error: 'bg-red-100 text-red-800' }
+  return <span className={'px-2 py-1 rounded-full text-xs font-medium ' + variants['${variant}']}>${label}</span>
+}`
+    },
+    switch: () => `function ${name}({ checked, onChange }) {
+  return (
+    <label className="flex items-center gap-3 cursor-pointer">
+      <div className={'relative w-11 h-6 rounded-full transition-colors ' + (checked ? 'bg-primary' : 'bg-gray-300')}>
+        <div className={'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ' + (checked ? 'translate-x-5' : '')} />
+      </div>
+      <span className="text-sm">${props.label || ''}</span>
+    </label>
+  )
+}`,
+    progress: () => `function ${name}() {
+  const percent = (${props.value || 0} / ${props.max || 100}) * 100
+  return (
+    <div className="w-full">
+      ${props.showLabel ? '<div className="flex justify-between text-sm mb-1"><span>Progress</span><span>{percent.toFixed(0)}%</span></div>' : ''}
+      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-full bg-primary rounded-full transition-all" style={{ width: percent + '%' }} />
+      </div>
+    </div>
+  )
+}`,
+    tabs: () => `function ${name}() {
+  const [active, setActive] = React.useState(${props.activeIndex || 0})
+  const tabs = ${JSON.stringify(props.tabs || ['Tab 1', 'Tab 2'])}
+  return (
+    <div className="border-b border-gray-200">
+      <div className="flex gap-4">
+        {tabs.map((tab, i) => (
+          <button
+            key={i}
+            onClick={() => setActive(i)}
+            className={'py-2 px-4 border-b-2 transition-colors ' + (active === i ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700')}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}`,
+    modal: () => `function ${name}({ isOpen, onClose, children }) {
+  if (!isOpen) return null
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+      <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">${props.title || 'Modal'}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  )
+}`,
+    dropdown: () => `function ${name}({ value, onChange }) {
+  const options = ${JSON.stringify(props.options || ['Option 1', 'Option 2'])}
+  return (
+    <div>
+      ${props.label ? `<label className="block text-sm font-medium mb-1">${props.label}</label>` : ''}
+      <select
+        value={value}
+        onChange={onChange}
+        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+      >
+        <option value="">${props.placeholder || 'Select...'}</option>
+        {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+      </select>
+    </div>
+  )
+}`,
+    slider: () => `function ${name}({ value, onChange }) {
+  return (
+    <div>
+      ${props.label ? `<div className="flex justify-between text-sm mb-1"><span>${props.label}</span><span>{value}</span></div>` : ''}
+      <input
+        type="range"
+        min="${props.min || 0}"
+        max="${props.max || 100}"
+        step="${props.step || 1}"
+        value={value}
+        onChange={onChange}
+        className="w-full accent-primary"
+      />
+    </div>
+  )
+}`,
+    rating: () => `function ${name}({ value, onChange }) {
+  return (
+    <div className="flex gap-1">
+      {Array.from({ length: ${props.max || 5} }).map((_, i) => (
+        <button
+          key={i}
+          type="button"
+          onClick={() => onChange(i + 1)}
+          className={'text-2xl ' + (i < value ? 'text-yellow-400' : 'text-gray-300')}
+        >
+          ★
+        </button>
+      ))}
+    </div>
+  )
+}`,
+    chart: () => `function ${name}() {
+  const data = ${JSON.stringify(props.data || [10, 25, 15, 30])}
+  const labels = ${JSON.stringify(props.labels || ['A', 'B', 'C', 'D'])}
+  const maxVal = Math.max(...data)
+  return (
+    <div className="p-4 border rounded-lg">
+      <p className="text-sm text-gray-500 mb-2">${props.title || 'Chart'} (${props.type || 'bar'})</p>
+      <div className="h-48 flex items-end gap-2">
+        {data.map((v, i) => (
+          <div key={i} className="flex-1 flex flex-col items-center">
+            <div className="w-full bg-primary rounded-t" style={{ height: ((v / maxVal) * 100) + '%' }} />
+            <span className="text-xs mt-1">{labels[i]}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}`,
+    video: () => `function ${name}() {
+  return (
+    <video
+      src="${props.src || ''}"
+      controls={${props.controls !== false}}
+      autoPlay={${props.autoPlay === true}}
+      loop={${props.loop === true}}
+      className="w-full rounded-lg"
+    />
+  )
+}`,
+    map: () => `function ${name}() {
+  // Map component - requires map library (leaflet, mapbox, etc.)
+  return (
+    <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+      <p className="text-gray-500">Map: ${props.latitude || 0}, ${props.longitude || 0}</p>
+    </div>
+  )
+}`,
+    'auth-screen': () => `function ${name}() {
+  const [email, setEmail] = React.useState('')
+  const [password, setPassword] = React.useState('')
+  return (
+    <div className="max-w-md mx-auto p-8">
+      <h1 className="text-2xl font-bold mb-6">${props.mode === 'register' ? 'Create Account' : 'Sign In'}</h1>
+      <form className="space-y-4">
+        <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-3 border rounded-lg" />
+        <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-3 border rounded-lg" />
+        <button type="submit" className="w-full py-3 bg-primary text-white rounded-lg font-medium">${props.mode === 'register' ? 'Create Account' : 'Sign In'}</button>
+      </form>
+      ${(props.providers as string[])?.includes('google') ? `<button className="w-full mt-4 py-3 border rounded-lg flex items-center justify-center gap-2">Continue with Google</button>` : ''}
+    </div>
+  )
+}`,
   }
 
-  return `function ${name}() {
-  return <div>${name}</div>
+  return generators[capsule.type]?.() || `function ${name}() {
+  return <div className="p-4 border rounded-lg">${def?.name || name}</div>
 }`
 }
 
 function generateSwiftUIComponent(capsule: CapsuleInstance): string {
   const def = getCapsuleDefinition(capsule.type)
-  const name = def?.name || capsule.type
+  const name = (def?.name || capsule.type).replace(/\s+/g, '')
+  const props = capsule.props
 
-  if (capsule.type === 'button') {
-    return `struct ${name}View: View {
+  const generators: Record<string, () => string> = {
+    button: () => `struct ${name}View: View {
+    var action: () -> Void = {}
     var body: some View {
-        Button(action: {}) {
-            Text("${capsule.props.label || 'Button'}")
-                .padding()
+        Button(action: action) {
+            Text("${props.label || 'Button'}")
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
                 .background(Color.blue)
                 .foregroundColor(.white)
                 .cornerRadius(8)
         }
     }
-}`
-  }
-
-  if (capsule.type === 'text') {
-    return `struct ${name}View: View {
+}`,
+    text: () => `struct ${name}View: View {
     var body: some View {
-        Text("${capsule.props.content || 'Text'}")
+        Text("${props.content || 'Text'}")
+            .font(.${props.variant === 'h1' ? 'largeTitle' : props.variant === 'h2' ? 'title' : props.variant === 'h3' ? 'title2' : 'body'})
     }
-}`
+}`,
+    input: () => `struct ${name}View: View {
+    @Binding var text: String
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ${props.label ? `Text("${props.label}").font(.caption).foregroundColor(.secondary)` : ''}
+            TextField("${props.placeholder || ''}", text: $text)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+        }
+    }
+}`,
+    card: () => `struct ${name}View<Content: View>: View {
+    let content: Content
+    init(@ViewBuilder content: () -> Content) { self.content = content() }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ${props.title ? `Text("${props.title}").font(.headline)` : ''}
+            ${props.subtitle ? `Text("${props.subtitle}").font(.subheadline).foregroundColor(.secondary)` : ''}
+            content
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(radius: 4)
+    }
+}`,
+    image: () => `struct ${name}View: View {
+    var body: some View {
+        AsyncImage(url: URL(string: "${props.src || 'https://picsum.photos/400/300'}")) { image in
+            image.resizable().aspectRatio(contentMode: .fill)
+        } placeholder: { ProgressView() }
+        .aspectRatio(${(props.aspectRatio as string)?.replace(':', '/') || '16/9'}, contentMode: .fit)
+        .cornerRadius(8)
+    }
+}`,
+    avatar: () => `struct ${name}View: View {
+    var body: some View {
+        ${props.src ? `AsyncImage(url: URL(string: "${props.src}")) { image in
+            image.resizable().aspectRatio(contentMode: .fill)
+        } placeholder: { ProgressView() }
+        .frame(width: ${props.size === 'lg' ? 64 : props.size === 'sm' ? 32 : 48}, height: ${props.size === 'lg' ? 64 : props.size === 'sm' ? 32 : 48})
+        .clipShape(Circle())` : `Circle()
+            .fill(Color.blue)
+            .frame(width: ${props.size === 'lg' ? 64 : props.size === 'sm' ? 32 : 48}, height: ${props.size === 'lg' ? 64 : props.size === 'sm' ? 32 : 48})
+            .overlay(Text("${(props.name as string)?.split(' ').map(n => n[0]).join('') || 'U'}").foregroundColor(.white))`}
+    }
+}`,
+    switch: () => `struct ${name}View: View {
+    @Binding var isOn: Bool
+    var body: some View {
+        Toggle("${props.label || ''}", isOn: $isOn)
+    }
+}`,
+    progress: () => `struct ${name}View: View {
+    var value: Double = ${props.value || 0}
+    var total: Double = ${props.max || 100}
+    var body: some View {
+        VStack(spacing: 4) {
+            ${props.showLabel ? `HStack { Text("Progress"); Spacer(); Text("\\(Int(value/total*100))%") }.font(.caption)` : ''}
+            ProgressView(value: value, total: total)
+                .progressViewStyle(LinearProgressViewStyle())
+        }
+    }
+}`,
+    slider: () => `struct ${name}View: View {
+    @Binding var value: Double
+    var body: some View {
+        VStack {
+            ${props.label ? `HStack { Text("${props.label}"); Spacer(); Text("\\(Int(value))") }.font(.caption)` : ''}
+            Slider(value: $value, in: ${props.min || 0}...${props.max || 100}, step: ${props.step || 1})
+        }
+    }
+}`,
+    rating: () => `struct ${name}View: View {
+    @Binding var rating: Int
+    var body: some View {
+        HStack {
+            ForEach(1...${props.max || 5}, id: \\.self) { i in
+                Image(systemName: i <= rating ? "star.fill" : "star")
+                    .foregroundColor(.yellow)
+                    .onTapGesture { rating = i }
+            }
+        }
+    }
+}`,
   }
 
-  return `struct ${name}View: View {
+  return generators[capsule.type]?.() || `struct ${name}View: View {
     var body: some View {
-        Text("${name}")
+        Text("${def?.name || name}")
+            .padding()
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(8)
     }
 }`
 }
 
 function generateComposeComponent(capsule: CapsuleInstance): string {
   const def = getCapsuleDefinition(capsule.type)
-  const name = def?.name || capsule.type
+  const name = (def?.name || capsule.type).replace(/\s+/g, '')
+  const props = capsule.props
 
-  if (capsule.type === 'button') {
-    return `@Composable
-fun ${name}() {
-    Button(onClick = {}) {
-        Text("${capsule.props.label || 'Button'}")
+  const generators: Record<string, () => string> = {
+    button: () => `@Composable
+fun ${name}(onClick: () -> Unit = {}) {
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+    ) {
+        Text("${props.label || 'Button'}")
     }
-}`
+}`,
+    text: () => `@Composable
+fun ${name}() {
+    Text(
+        text = "${props.content || 'Text'}",
+        style = MaterialTheme.typography.${props.variant === 'h1' ? 'displayLarge' : props.variant === 'h2' ? 'displayMedium' : props.variant === 'h3' ? 'headlineLarge' : 'bodyLarge'}
+    )
+}`,
+    input: () => `@Composable
+fun ${name}(value: String, onValueChange: (String) -> Unit) {
+    ${props.label ? `Column {
+        Text("${props.label}", style = MaterialTheme.typography.labelMedium)
+        Spacer(modifier = Modifier.height(4.dp))` : ''}
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = { Text("${props.placeholder || ''}") },
+            modifier = Modifier.fillMaxWidth()
+        )
+    ${props.label ? '}' : ''}
+}`,
+    card: () => `@Composable
+fun ${name}(content: @Composable () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            ${props.title ? `Text("${props.title}", style = MaterialTheme.typography.titleMedium)` : ''}
+            ${props.subtitle ? `Text("${props.subtitle}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)` : ''}
+            content()
+        }
+    }
+}`,
+    image: () => `@Composable
+fun ${name}() {
+    AsyncImage(
+        model = "${props.src || 'https://picsum.photos/400/300'}",
+        contentDescription = "${props.alt || 'Image'}",
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(${(props.aspectRatio as string)?.replace(':', 'f/') || '16f/9'}f)
+            .clip(RoundedCornerShape(8.dp)),
+        contentScale = ContentScale.Crop
+    )
+}`,
+    avatar: () => `@Composable
+fun ${name}() {
+    val size = ${props.size === 'lg' ? 64 : props.size === 'sm' ? 32 : 48}.dp
+    ${props.src ? `AsyncImage(
+        model = "${props.src}",
+        contentDescription = "Avatar",
+        modifier = Modifier.size(size).clip(CircleShape),
+        contentScale = ContentScale.Crop
+    )` : `Box(
+        modifier = Modifier.size(size).clip(CircleShape).background(MaterialTheme.colorScheme.primary),
+        contentAlignment = Alignment.Center
+    ) {
+        Text("${(props.name as string)?.split(' ').map(n => n[0]).join('') || 'U'}", color = Color.White)
+    }`}
+}`,
+    switch: () => `@Composable
+fun ${name}(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text("${props.label || ''}")
+        Spacer(modifier = Modifier.weight(1f))
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}`,
+    progress: () => `@Composable
+fun ${name}() {
+    val progress = ${props.value || 0}f / ${props.max || 100}f
+    Column {
+        ${props.showLabel ? `Row {
+            Text("Progress")
+            Spacer(modifier = Modifier.weight(1f))
+            Text("\${(progress * 100).toInt()}%")
+        }` : ''}
+        LinearProgressIndicator(
+            progress = progress,
+            modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp))
+        )
+    }
+}`,
+    slider: () => `@Composable
+fun ${name}(value: Float, onValueChange: (Float) -> Unit) {
+    Column {
+        ${props.label ? `Row {
+            Text("${props.label}")
+            Spacer(modifier = Modifier.weight(1f))
+            Text("\${value.toInt()}")
+        }` : ''}
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            valueRange = ${props.min || 0}f..${props.max || 100}f,
+            steps = ${Math.floor(((props.max as number) || 100) / ((props.step as number) || 1)) - 1}
+        )
+    }
+}`,
+    rating: () => `@Composable
+fun ${name}(rating: Int, onRatingChange: (Int) -> Unit) {
+    Row {
+        repeat(${props.max || 5}) { i ->
+            Icon(
+                imageVector = if (i < rating) Icons.Filled.Star else Icons.Outlined.Star,
+                contentDescription = null,
+                tint = Color(0xFFFFC107),
+                modifier = Modifier.clickable { onRatingChange(i + 1) }
+            )
+        }
+    }
+}`,
   }
 
-  if (capsule.type === 'text') {
-    return `@Composable
+  return generators[capsule.type]?.() || `@Composable
 fun ${name}() {
-    Text(text = "${capsule.props.content || 'Text'}")
-}`
-  }
-
-  return `@Composable
-fun ${name}() {
-    Text(text = "${name}")
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(8.dp),
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant
+    ) {
+        Text("${def?.name || name}", modifier = Modifier.padding(16.dp))
+    }
 }`
 }
