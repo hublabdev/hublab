@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getProject, updateProject } from '@/lib/store/projects'
 import { CAPSULE_DEFINITIONS, getCapsuleDefinition } from '@/lib/store/types'
-import type { Project, CapsuleInstance } from '@/lib/store/types'
+import type { Project, CapsuleInstance, ThemeConfig } from '@/lib/store/types'
 
 function generateId(): string {
   return `cap_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -141,82 +141,79 @@ export default function ProjectEditorPage() {
         {/* Canvas */}
         <div className="col-span-6 border border-border rounded-lg overflow-hidden bg-background">
           <div className="p-3 border-b border-border bg-muted/30 flex items-center justify-between">
-            <h2 className="font-medium text-sm">Canvas</h2>
-            <span className="text-xs text-muted-foreground">
-              {project.capsules.length} elements
-            </span>
+            <h2 className="font-medium text-sm">Preview</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                {project.capsules.length} elements
+              </span>
+            </div>
           </div>
-          <div className="p-4 overflow-y-auto h-[calc(100%-45px)]">
+          <div className="p-4 overflow-y-auto h-[calc(100%-45px)] bg-white">
             {project.capsules.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                 <div className="text-4xl mb-3">🎨</div>
                 <p className="text-sm">Click capsules on the left to add them</p>
               </div>
             ) : (
-              <div className="space-y-2">
-                {project.capsules.map((capsule, index) => {
-                  const def = getCapsuleDefinition(capsule.type)
-                  return (
-                    <div
-                      key={capsule.id}
-                      onClick={() => setSelectedCapsule(capsule)}
-                      className={`group relative p-3 rounded-lg border cursor-pointer transition-all ${
-                        selectedCapsule?.id === capsule.id
-                          ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg">{def?.icon || '📦'}</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium">{def?.name || capsule.type}</div>
-                          <div className="text-xs text-muted-foreground truncate">
-                            {JSON.stringify(capsule.props).slice(0, 50)}...
-                          </div>
-                        </div>
-                      </div>
+              <div className="space-y-3 max-w-md mx-auto">
+                {project.capsules.map((capsule, index) => (
+                  <div
+                    key={capsule.id}
+                    onClick={() => setSelectedCapsule(capsule)}
+                    className={`group relative rounded-lg cursor-pointer transition-all ${
+                      selectedCapsule?.id === capsule.id
+                        ? 'ring-2 ring-primary ring-offset-2'
+                        : 'hover:ring-2 hover:ring-primary/30 hover:ring-offset-1'
+                    }`}
+                  >
+                    <CapsulePreview capsule={capsule} theme={project.theme} />
 
-                      {/* Actions */}
-                      <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            moveCapsule(capsule.id, 'up')
-                          }}
-                          disabled={index === 0}
-                          className="p-1 rounded hover:bg-muted disabled:opacity-30"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            moveCapsule(capsule.id, 'down')
-                          }}
-                          disabled={index === project.capsules.length - 1}
-                          className="p-1 rounded hover:bg-muted disabled:opacity-30"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            removeCapsule(capsule.id)
-                          }}
-                          className="p-1 rounded hover:bg-red-50 hover:text-red-500"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
+                    {/* Hover Actions */}
+                    <div className="absolute -top-2 -right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          moveCapsule(capsule.id, 'up')
+                        }}
+                        disabled={index === 0}
+                        className="p-1.5 rounded-full bg-white shadow-md hover:bg-gray-50 disabled:opacity-30"
+                        title="Move up"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          moveCapsule(capsule.id, 'down')
+                        }}
+                        disabled={index === project.capsules.length - 1}
+                        className="p-1.5 rounded-full bg-white shadow-md hover:bg-gray-50 disabled:opacity-30"
+                        title="Move down"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          removeCapsule(capsule.id)
+                        }}
+                        className="p-1.5 rounded-full bg-white shadow-md hover:bg-red-50 hover:text-red-500"
+                        title="Delete"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
                     </div>
-                  )
-                })}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -248,6 +245,262 @@ export default function ProjectEditorPage() {
       )}
     </div>
   )
+}
+
+// Live Preview Component
+function CapsulePreview({ capsule, theme }: { capsule: CapsuleInstance; theme: ThemeConfig }) {
+  const props = capsule.props
+  const primary = theme.colors.primary
+
+  switch (capsule.type) {
+    case 'button':
+      return (
+        <button
+          type="button"
+          className="px-4 py-2 text-white rounded-lg font-medium transition-colors"
+          style={{ backgroundColor: primary }}
+        >
+          {(props.label as string) || 'Button'}
+        </button>
+      )
+
+    case 'text':
+      const textStyles: Record<string, string> = {
+        h1: 'text-3xl font-bold',
+        h2: 'text-2xl font-bold',
+        h3: 'text-xl font-semibold',
+        body: 'text-base',
+        caption: 'text-sm text-gray-500',
+      }
+      return (
+        <p className={textStyles[(props.variant as string) || 'body']}>
+          {(props.content as string) || 'Text content'}
+        </p>
+      )
+
+    case 'input':
+      const inputLabel = props.label as string | undefined
+      return (
+        <div>
+          {inputLabel && <label className="block text-sm font-medium mb-1">{inputLabel}</label>}
+          <input
+            type={(props.type as string) || 'text'}
+            placeholder={(props.placeholder as string) || 'Enter text...'}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:outline-none"
+            style={{ '--tw-ring-color': primary } as React.CSSProperties}
+            readOnly
+          />
+        </div>
+      )
+
+    case 'card':
+      const cardTitle = props.title as string | undefined
+      const cardSubtitle = props.subtitle as string | undefined
+      return (
+        <div className="bg-white rounded-xl shadow-md p-4 border">
+          {cardTitle && <h3 className="text-lg font-semibold mb-1">{cardTitle}</h3>}
+          {cardSubtitle && <p className="text-gray-500 text-sm">{cardSubtitle}</p>}
+          {!cardTitle && !cardSubtitle && <p className="text-gray-400 text-sm">Card content</p>}
+        </div>
+      )
+
+    case 'image':
+      return (
+        <img
+          src={(props.src as string) || 'https://picsum.photos/400/200'}
+          alt={(props.alt as string) || 'Image'}
+          className="w-full rounded-lg object-cover"
+          style={{ aspectRatio: (props.aspectRatio as string)?.replace(':', '/') || '16/9' }}
+        />
+      )
+
+    case 'avatar':
+      const sizes: Record<string, string> = { sm: 'w-8 h-8', md: 'w-12 h-12', lg: 'w-16 h-16', xl: 'w-24 h-24' }
+      const initials = ((props.name as string) || 'User').split(' ').map(n => n[0]).join('').toUpperCase()
+      return (
+        <div
+          className={`${sizes[(props.size as string) || 'md']} rounded-full flex items-center justify-center text-white font-medium`}
+          style={{ backgroundColor: primary }}
+        >
+          {initials}
+        </div>
+      )
+
+    case 'badge':
+      const badgeColors: Record<string, string> = {
+        primary: 'bg-blue-100 text-blue-800',
+        success: 'bg-green-100 text-green-800',
+        warning: 'bg-yellow-100 text-yellow-800',
+        error: 'bg-red-100 text-red-800',
+        info: 'bg-purple-100 text-purple-800',
+      }
+      return (
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${badgeColors[(props.variant as string) || 'primary']}`}>
+          {(props.label as string) || 'Badge'}
+        </span>
+      )
+
+    case 'switch':
+      return (
+        <label className="flex items-center gap-3 cursor-pointer">
+          <div className="relative w-11 h-6 rounded-full bg-gray-300">
+            <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${props.defaultChecked ? 'translate-x-5' : ''}`} />
+          </div>
+          <span className="text-sm">{(props.label as string) || 'Toggle'}</span>
+        </label>
+      )
+
+    case 'progress':
+      const percent = ((props.value as number) || 60) / ((props.max as number) || 100) * 100
+      const showProgressLabel = props.showLabel as boolean
+      return (
+        <div className="w-full">
+          {showProgressLabel && (
+            <div className="flex justify-between text-sm mb-1">
+              <span>Progress</span>
+              <span>{Math.round(percent)}%</span>
+            </div>
+          )}
+          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-full rounded-full" style={{ width: `${percent}%`, backgroundColor: primary }} />
+          </div>
+        </div>
+      )
+
+    case 'tabs':
+      const tabs = (props.tabs as string[]) || ['Tab 1', 'Tab 2', 'Tab 3']
+      return (
+        <div className="border-b border-gray-200">
+          <div className="flex gap-4">
+            {tabs.map((tab, i) => (
+              <span
+                key={i}
+                className={`py-2 px-1 text-sm border-b-2 ${i === 0 ? 'border-current font-medium' : 'border-transparent text-gray-500'}`}
+                style={i === 0 ? { color: primary } : {}}
+              >
+                {tab}
+              </span>
+            ))}
+          </div>
+        </div>
+      )
+
+    case 'dropdown':
+      const dropdownLabel = props.label as string | undefined
+      return (
+        <div>
+          {dropdownLabel && <label className="block text-sm font-medium mb-1">{dropdownLabel}</label>}
+          <select className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white" disabled>
+            <option>{(props.placeholder as string) || 'Select option...'}</option>
+          </select>
+        </div>
+      )
+
+    case 'slider':
+      const sliderLabel = props.label as string | undefined
+      return (
+        <div>
+          {sliderLabel && (
+            <div className="flex justify-between text-sm mb-1">
+              <span>{sliderLabel}</span>
+              <span>{(props.value as number) || 50}</span>
+            </div>
+          )}
+          <input
+            type="range"
+            min={(props.min as number) || 0}
+            max={(props.max as number) || 100}
+            defaultValue={(props.value as number) || 50}
+            className="w-full"
+            style={{ accentColor: primary }}
+          />
+        </div>
+      )
+
+    case 'rating':
+      const rating = (props.value as number) || 3
+      const maxStars = (props.max as number) || 5
+      return (
+        <div className="flex gap-1">
+          {Array.from({ length: maxStars }).map((_, i) => (
+            <span key={i} className={`text-xl ${i < rating ? 'text-yellow-400' : 'text-gray-300'}`}>★</span>
+          ))}
+        </div>
+      )
+
+    case 'divider':
+      return <hr className="border-gray-200" />
+
+    case 'spacer':
+      const spacerSizes: Record<string, string> = { xs: 'h-2', sm: 'h-4', md: 'h-8', lg: 'h-12', xl: 'h-16' }
+      return <div className={spacerSizes[(props.size as string) || 'md']} />
+
+    case 'chart':
+      const data = (props.data as number[]) || [10, 25, 15, 30, 20]
+      const labels = (props.labels as string[]) || ['A', 'B', 'C', 'D', 'E']
+      const maxVal = Math.max(...data)
+      return (
+        <div className="p-4 border rounded-lg">
+          <p className="text-sm text-gray-500 mb-2">{(props.title as string) || 'Chart'}</p>
+          <div className="h-32 flex items-end gap-2">
+            {data.map((v, i) => (
+              <div key={i} className="flex-1 flex flex-col items-center">
+                <div className="w-full rounded-t" style={{ height: `${(v / maxVal) * 100}%`, backgroundColor: primary }} />
+                <span className="text-xs mt-1">{labels[i]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+
+    case 'video':
+      return (
+        <div className="w-full aspect-video bg-gray-900 rounded-lg flex items-center justify-center">
+          <svg className="w-12 h-12 text-white/50" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </div>
+      )
+
+    case 'map':
+      const lat = (props.latitude as number) || 40.71
+      const lng = (props.longitude as number) || -74.00
+      return (
+        <div className="w-full h-40 bg-gray-100 rounded-lg flex items-center justify-center">
+          <div className="text-center text-gray-500">
+            <span className="text-2xl">📍</span>
+            <p className="text-xs mt-1">Map: {lat}, {lng}</p>
+          </div>
+        </div>
+      )
+
+    case 'auth-screen':
+      return (
+        <div className="p-4 border rounded-lg bg-gray-50">
+          <h2 className="text-lg font-semibold mb-4">{props.mode === 'register' ? 'Create Account' : 'Sign In'}</h2>
+          <div className="space-y-3">
+            <input type="email" placeholder="Email" className="w-full px-3 py-2 border rounded-lg text-sm" readOnly />
+            <input type="password" placeholder="Password" className="w-full px-3 py-2 border rounded-lg text-sm" readOnly />
+            <button
+              type="button"
+              className="w-full py-2 text-white rounded-lg text-sm font-medium"
+              style={{ backgroundColor: primary }}
+            >
+              {props.mode === 'register' ? 'Create Account' : 'Sign In'}
+            </button>
+          </div>
+        </div>
+      )
+
+    default:
+      const def = getCapsuleDefinition(capsule.type)
+      return (
+        <div className="p-3 border border-dashed rounded-lg text-center text-gray-500">
+          <span className="text-xl mr-2">{def?.icon || '📦'}</span>
+          <span className="text-sm">{def?.name || capsule.type}</span>
+        </div>
+      )
+  }
 }
 
 // Category labels
