@@ -18,6 +18,7 @@ export default function ProjectEditorPage() {
   const [loading, setLoading] = useState(true)
   const [selectedCapsule, setSelectedCapsule] = useState<CapsuleInstance | null>(null)
   const [showExport, setShowExport] = useState(false)
+  const [showTheme, setShowTheme] = useState(false)
 
   useEffect(() => {
     const proj = getProject(params.id as string)
@@ -115,15 +116,28 @@ export default function ProjectEditorPage() {
             </p>
           </div>
         </div>
-        <button
-          onClick={() => setShowExport(true)}
-          className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-          </svg>
-          Export
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowTheme(true)}
+            className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+            </svg>
+            Theme
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowExport(true)}
+            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Export
+          </button>
+        </div>
       </div>
 
       {/* Editor */}
@@ -242,6 +256,15 @@ export default function ProjectEditorPage() {
       {/* Export Modal */}
       {showExport && (
         <ExportModal project={project} onClose={() => setShowExport(false)} />
+      )}
+
+      {/* Theme Modal */}
+      {showTheme && (
+        <ThemePanel
+          theme={project.theme}
+          onUpdate={(theme) => saveProject({ theme })}
+          onClose={() => setShowTheme(false)}
+        />
       )}
     </div>
   )
@@ -1514,4 +1537,262 @@ fun ${name}() {
         Text("${def?.name || name}", modifier = Modifier.padding(16.dp))
     }
 }`
+}
+
+// Theme Panel Component
+function ThemePanel({
+  theme,
+  onUpdate,
+  onClose,
+}: {
+  theme: ThemeConfig
+  onUpdate: (theme: ThemeConfig) => void
+  onClose: () => void
+}) {
+  const [localTheme, setLocalTheme] = useState<ThemeConfig>(theme)
+
+  const presetThemes = [
+    { name: 'Default Blue', colors: { primary: '#3B82F6', secondary: '#6366F1', accent: '#8B5CF6', background: '#FFFFFF', surface: '#F3F4F6', text: '#111827' } },
+    { name: 'Emerald', colors: { primary: '#10B981', secondary: '#14B8A6', accent: '#06B6D4', background: '#FFFFFF', surface: '#F0FDF4', text: '#064E3B' } },
+    { name: 'Rose', colors: { primary: '#F43F5E', secondary: '#EC4899', accent: '#D946EF', background: '#FFFFFF', surface: '#FFF1F2', text: '#881337' } },
+    { name: 'Amber', colors: { primary: '#F59E0B', secondary: '#EAB308', accent: '#84CC16', background: '#FFFFFF', surface: '#FFFBEB', text: '#78350F' } },
+    { name: 'Slate Dark', colors: { primary: '#3B82F6', secondary: '#6366F1', accent: '#8B5CF6', background: '#0F172A', surface: '#1E293B', text: '#F8FAFC' } },
+    { name: 'Midnight', colors: { primary: '#8B5CF6', secondary: '#A855F7', accent: '#D946EF', background: '#030712', surface: '#111827', text: '#F9FAFB' } },
+  ]
+
+  const borderRadiusOptions = [
+    { value: 'none', label: 'None', preview: '0px' },
+    { value: 'sm', label: 'Small', preview: '4px' },
+    { value: 'md', label: 'Medium', preview: '8px' },
+    { value: 'lg', label: 'Large', preview: '12px' },
+    { value: 'full', label: 'Full', preview: '9999px' },
+  ]
+
+  const fontOptions = [
+    'Inter',
+    'Roboto',
+    'Open Sans',
+    'Lato',
+    'Montserrat',
+    'Poppins',
+    'SF Pro',
+    'System UI',
+  ]
+
+  const updateColor = (key: keyof ThemeConfig['colors'], value: string) => {
+    setLocalTheme({
+      ...localTheme,
+      colors: { ...localTheme.colors, [key]: value },
+    })
+  }
+
+  const applyTheme = () => {
+    onUpdate(localTheme)
+    onClose()
+  }
+
+  const applyPreset = (preset: typeof presetThemes[0]) => {
+    setLocalTheme({
+      ...localTheme,
+      name: preset.name,
+      colors: preset.colors,
+    })
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="w-full max-w-2xl bg-background rounded-xl shadow-2xl border border-border overflow-hidden max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
+          <h2 className="text-lg font-semibold">Theme Customization</h2>
+          <button type="button" onClick={onClose} className="p-2 hover:bg-muted rounded-md" title="Close">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 overflow-y-auto flex-1">
+          {/* Preset Themes */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium mb-3">Preset Themes</h3>
+            <div className="grid grid-cols-3 gap-2">
+              {presetThemes.map((preset) => (
+                <button
+                  type="button"
+                  key={preset.name}
+                  onClick={() => applyPreset(preset)}
+                  className={`p-3 rounded-lg border text-left transition-all ${
+                    localTheme.name === preset.name
+                      ? 'border-primary ring-2 ring-primary/20'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <div className="flex gap-1 mb-2">
+                    {Object.values(preset.colors).slice(0, 3).map((color, i) => (
+                      <div
+                        key={i}
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xs font-medium">{preset.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Custom Colors */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium mb-3">Custom Colors</h3>
+            <div className="grid grid-cols-2 gap-4">
+              {(Object.keys(localTheme.colors) as Array<keyof ThemeConfig['colors']>).map((colorKey) => (
+                <div key={colorKey} className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={localTheme.colors[colorKey]}
+                    onChange={(e) => updateColor(colorKey, e.target.value)}
+                    className="w-10 h-10 rounded-lg border border-border cursor-pointer"
+                    title={`Select ${colorKey} color`}
+                    aria-label={`${colorKey} color picker`}
+                  />
+                  <div>
+                    <label htmlFor={`color-${colorKey}`} className="text-sm font-medium capitalize">{colorKey}</label>
+                    <input
+                      id={`color-${colorKey}`}
+                      type="text"
+                      value={localTheme.colors[colorKey]}
+                      onChange={(e) => updateColor(colorKey, e.target.value)}
+                      className="block w-full text-xs text-muted-foreground bg-transparent border-none p-0 focus:outline-none uppercase"
+                      aria-label={`${colorKey} color hex value`}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Border Radius */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium mb-3">Border Radius</h3>
+            <div className="flex gap-2">
+              {borderRadiusOptions.map((option) => (
+                <button
+                  type="button"
+                  key={option.value}
+                  onClick={() => setLocalTheme({ ...localTheme, borderRadius: option.value as ThemeConfig['borderRadius'] })}
+                  className={`flex-1 p-3 rounded-lg border text-center transition-all ${
+                    localTheme.borderRadius === option.value
+                      ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <div
+                    className="w-8 h-8 mx-auto mb-1 border-2 border-current"
+                    style={{ borderRadius: option.preview }}
+                  />
+                  <span className="text-xs">{option.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Font Family */}
+          <div className="mb-6">
+            <label htmlFor="font-family-select" className="text-sm font-medium mb-3 block">Font Family</label>
+            <select
+              id="font-family-select"
+              value={localTheme.fontFamily}
+              onChange={(e) => setLocalTheme({ ...localTheme, fontFamily: e.target.value })}
+              className="w-full px-4 py-2 rounded-lg border border-border bg-background"
+            >
+              {fontOptions.map((font) => (
+                <option key={font} value={font}>{font}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Live Preview */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium mb-3">Live Preview</h3>
+            <div
+              className="p-6 rounded-xl border"
+              style={{
+                backgroundColor: localTheme.colors.background,
+                borderColor: localTheme.colors.surface,
+                fontFamily: localTheme.fontFamily,
+              }}
+            >
+              <div
+                className="p-4 rounded-lg mb-4"
+                style={{
+                  backgroundColor: localTheme.colors.surface,
+                  borderRadius: borderRadiusOptions.find(o => o.value === localTheme.borderRadius)?.preview,
+                }}
+              >
+                <h4 className="font-semibold mb-2" style={{ color: localTheme.colors.text }}>
+                  Card Title
+                </h4>
+                <p className="text-sm mb-4" style={{ color: localTheme.colors.text, opacity: 0.7 }}>
+                  This is a preview of your theme settings.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className="px-4 py-2 text-white text-sm font-medium"
+                    style={{
+                      backgroundColor: localTheme.colors.primary,
+                      borderRadius: borderRadiusOptions.find(o => o.value === localTheme.borderRadius)?.preview,
+                    }}
+                  >
+                    Primary
+                  </button>
+                  <button
+                    type="button"
+                    className="px-4 py-2 text-white text-sm font-medium"
+                    style={{
+                      backgroundColor: localTheme.colors.secondary,
+                      borderRadius: borderRadiusOptions.find(o => o.value === localTheme.borderRadius)?.preview,
+                    }}
+                  >
+                    Secondary
+                  </button>
+                  <button
+                    type="button"
+                    className="px-4 py-2 text-white text-sm font-medium"
+                    style={{
+                      backgroundColor: localTheme.colors.accent,
+                      borderRadius: borderRadiusOptions.find(o => o.value === localTheme.borderRadius)?.preview,
+                    }}
+                  >
+                    Accent
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end gap-3 p-4 border-t border-border shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={applyTheme}
+            className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            Apply Theme
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
