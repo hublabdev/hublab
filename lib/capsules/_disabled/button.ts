@@ -7,7 +7,7 @@
  * - Android: Jetpack Compose nativo
  */
 
-import { CapsuleDefinition } from '../types'
+import { CapsuleDefinition } from './types'
 
 export const ButtonCapsule: CapsuleDefinition = {
   id: 'button',

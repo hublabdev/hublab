@@ -506,7 +506,7 @@ export const BiometricSetup: React.FC<BiometricSetupProps> = ({
 
     ios: {
       dependencies: ['SwiftUI', 'LocalAuthentication'],
-      minimumVersion: '15.0',
+      minVersion: '15.0',
       components: {
         // Native Biometric Authentication
         BiometricAuth: `
@@ -922,7 +922,7 @@ struct BiometricExampleView: View {
         'androidx.compose.material3:material3',
         'androidx.biometric:biometric:1.2.0-alpha05',
       ],
-      minimumSdk: 24,
+      minSdk: 24,
       components: {
         // Compose Biometric Authentication
         BiometricAuth: `
@@ -1193,7 +1193,7 @@ fun BiometricSetupScreen(
 
         // Description
         Text(
-            text = "Sign in quickly and securely using ${biometricName.lowercase()}.",
+            text = "Sign in quickly and securely using \${biometricName.lowercase()}.",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,

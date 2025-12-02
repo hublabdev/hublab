@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   IconApple,
@@ -246,7 +246,7 @@ function FileTree({ files, level = 0 }: { files: ExportFile[]; level?: number })
   )
 }
 
-export default function ExportPage() {
+function ExportPageContent() {
   const searchParams = useSearchParams()
   const projectIdParam = searchParams.get('project')
 
@@ -305,11 +305,11 @@ export default function ExportPage() {
   }
 
   const totalLinesGenerated = useMemo(() => {
-    return results.reduce((acc, r) => acc + r.linesOfCode, 0)
+    return results.reduce((acc, r) => acc + (r.linesOfCode || 0), 0)
   }, [results])
 
   const totalFilesGenerated = useMemo(() => {
-    return results.reduce((acc, r) => acc + r.files.length, 0)
+    return results.reduce((acc, r) => acc + r.fileCount, 0)
   }, [results])
 
   if (projectsLoading) {
@@ -523,7 +523,7 @@ export default function ExportPage() {
                         <span className="text-sm font-medium">{target.framework}</span>
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {result.files.length} archivos · {result.linesOfCode.toLocaleString()} líneas
+                        {result.fileCount} archivos · {(result.linesOfCode || 0).toLocaleString()} líneas
                       </div>
                     </div>
                   )
@@ -561,13 +561,6 @@ export default function ExportPage() {
                 const target = exportTargets.find((t) => t.platform === result.platform)
                 if (!target) return null
 
-                // Convert result files to tree structure
-                const fileTree: ExportFile[] = result.files.slice(0, 10).map((file) => ({
-                  name: file.split('/').pop() || file,
-                  path: file,
-                  type: 'file' as const,
-                }))
-
                 return (
                   <div key={result.platform} className="rounded-lg border border-border p-3">
                     <div className="flex items-center gap-2 mb-2">
@@ -575,13 +568,8 @@ export default function ExportPage() {
                       <span className="text-sm font-medium">{target.platform.toUpperCase()}</span>
                       <span className="text-xs text-muted-foreground">({target.framework})</span>
                     </div>
-                    <div className="max-h-48 overflow-y-auto">
-                      <FileTree files={fileTree} />
-                      {result.files.length > 10 && (
-                        <div className="text-xs text-muted-foreground mt-2 pl-6">
-                          +{result.files.length - 10} archivos más...
-                        </div>
-                      )}
+                    <div className="text-sm text-muted-foreground">
+                      {result.fileCount} archivos generados
                     </div>
                   </div>
                 )
@@ -641,5 +629,13 @@ export default function ExportPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ExportPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+      <ExportPageContent />
+    </Suspense>
   )
 }

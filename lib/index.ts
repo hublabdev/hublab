@@ -9,4 +9,3 @@ export * from './capsules'
 
 // Compiler System
 export * from './compiler'
-export { createCompiler } from './compiler'

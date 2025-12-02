@@ -24,6 +24,7 @@ import {
 } from '../../../../components/ui/icons'
 import { useProject } from '../../../../lib/hooks/use-projects'
 import { getCapsule } from '../../../../lib/capsules'
+import { CodePreview } from '../../../../components/ui/code-preview'
 
 interface ProjectCapsule {
   id: string
@@ -53,7 +54,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
   const router = useRouter()
   const { project, loading, error, updateProject, addCapsule, removeCapsule } = useProject(params.id)
 
-  const [activeTab, setActiveTab] = useState<'capsules' | 'theme' | 'settings'>('capsules')
+  const [activeTab, setActiveTab] = useState<'capsules' | 'code' | 'theme' | 'settings'>('capsules')
   const [selectedCapsule, setSelectedCapsule] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -62,23 +63,24 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
   // Form states for settings
   const [editName, setEditName] = useState('')
   const [editDescription, setEditDescription] = useState('')
-  const [editPlatforms, setEditPlatforms] = useState<string[]>([])
+  const [editPlatforms, setEditPlatforms] = useState<('ios' | 'android' | 'web' | 'desktop')[]>([])
 
   // Theme editing
-  const [editTheme, setEditTheme] = useState<Record<string, string>>({})
+  const [editTheme, setEditTheme] = useState<Record<string, string | undefined>>({})
 
   useEffect(() => {
     if (project) {
       setEditName(project.name)
       setEditDescription(project.description || '')
       setEditPlatforms(project.platforms || [])
-      setEditTheme(project.theme?.colors || {
+      const defaultColors = {
         primary: '#3b82f6',
         secondary: '#8b5cf6',
         accent: '#06b6d4',
         background: '#ffffff',
         foreground: '#0f172a',
-      })
+      }
+      setEditTheme(project.theme?.colors || defaultColors)
     }
   }, [project])
 
@@ -109,7 +111,11 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
       await updateProject({
         theme: {
           name: project.theme?.name || 'Custom',
-          colors: editTheme,
+          colors: {
+            primary: editTheme.primary || '#3b82f6',
+            secondary: editTheme.secondary || '#8b5cf6',
+            ...editTheme,
+          },
         },
       })
     } finally {
@@ -135,7 +141,9 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
     }
   }
 
-  const togglePlatform = (platform: string) => {
+  type Platform = 'ios' | 'android' | 'web' | 'desktop'
+
+  const togglePlatform = (platform: Platform) => {
     setEditPlatforms((prev) =>
       prev.includes(platform)
         ? prev.filter((p) => p !== platform)
@@ -246,7 +254,11 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
             <IconEye size={16} />
             Preview
           </button>
-          <button type="button" className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors">
+          <button
+            type="button"
+            onClick={() => setActiveTab('code')}
+            className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
+          >
             <IconCode size={16} />
             Ver Código
           </button>
@@ -265,6 +277,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
         <div className="flex gap-4">
           {[
             { id: 'capsules', label: 'Cápsulas', icon: IconLayers },
+            { id: 'code', label: 'Código', icon: IconCode },
             { id: 'theme', label: 'Tema', icon: IconEdit },
             { id: 'settings', label: 'Configuración', icon: IconSettings },
           ].map((tab) => (
@@ -420,6 +433,400 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
         </div>
       )}
 
+      {activeTab === 'code' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold">Código Generado</h2>
+              <p className="text-sm text-muted-foreground">
+                Vista previa del código nativo generado para cada plataforma
+              </p>
+            </div>
+          </div>
+
+          {projectCapsules.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border bg-muted/30 p-12 text-center">
+              <IconCode size={40} className="mx-auto text-muted-foreground" />
+              <h3 className="mt-4 font-medium">Sin código para generar</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Añade cápsulas al proyecto para ver el código generado.
+              </p>
+              <Link
+                href="/dashboard/capsules"
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                <IconPlus size={14} />
+                Explorar Cápsulas
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Project App Code */}
+              <CodePreview
+                code={{
+                  ios: `// ${project.name} - iOS App
+import SwiftUI
+
+@main
+struct ${project.name.replace(/\s+/g, '')}App: App {
+    @StateObject private var appState = AppState()
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(appState)
+        }
+    }
+}
+
+// Theme Configuration
+extension Color {
+    static let primary = Color(hex: "${editTheme.primary || '#3b82f6'}")
+    static let secondary = Color(hex: "${editTheme.secondary || '#8b5cf6'}")
+    static let accent = Color(hex: "${editTheme.accent || '#06b6d4'}")
+}
+
+// ContentView with Capsules
+struct ContentView: View {
+    @EnvironmentObject var appState: AppState
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 16) {
+${projectCapsules.map(c => `                    // ${c.name}
+                    ${c.type}View(
+                        ${Object.entries(c.props).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join(',\n                        ')}
+                    )`).join('\n\n')}
+                }
+                .padding()
+            }
+            .navigationTitle("${project.name}")
+        }
+    }
+}`,
+                  android: `// ${project.name} - Android App
+package com.hublab.${project.name.toLowerCase().replace(/\s+/g, '')}
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            ${project.name.replace(/\s+/g, '')}Theme {
+                MainScreen()
+            }
+        }
+    }
+}
+
+// Theme Configuration
+object AppColors {
+    val Primary = Color(0xFF${(editTheme.primary || '#3b82f6').replace('#', '')})
+    val Secondary = Color(0xFF${(editTheme.secondary || '#8b5cf6').replace('#', '')})
+    val Accent = Color(0xFF${(editTheme.accent || '#06b6d4').replace('#', '')})
+}
+
+@Composable
+fun MainScreen() {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("${project.name}") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = AppColors.Primary
+                )
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+${projectCapsules.map(c => `            // ${c.name}
+            ${c.type}Component(
+                ${Object.entries(c.props).map(([k, v]) => `${k} = ${JSON.stringify(v)}`).join(',\n                ')}
+            )`).join('\n\n')}
+        }
+    }
+}`,
+                  web: `// ${project.name} - React Web App
+'use client'
+
+import React, { useState } from 'react'
+${projectCapsules.map(c => `import { ${c.type}Capsule } from '@hublab/capsules'`).join('\n')}
+
+// Theme Configuration
+const theme = {
+  colors: {
+    primary: '${editTheme.primary || '#3b82f6'}',
+    secondary: '${editTheme.secondary || '#8b5cf6'}',
+    accent: '${editTheme.accent || '#06b6d4'}',
+    background: '${editTheme.background || '#ffffff'}',
+    foreground: '${editTheme.foreground || '#0f172a'}',
+  }
+}
+
+export default function ${project.name.replace(/\s+/g, '')}App() {
+  const [loading, setLoading] = useState(false)
+
+  return (
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundColor: theme.colors.background,
+        color: theme.colors.foreground
+      }}
+    >
+      <header
+        className="border-b px-6 py-4"
+        style={{ borderColor: theme.colors.primary }}
+      >
+        <h1 className="text-2xl font-bold">${project.name}</h1>
+      </header>
+
+      <main className="container mx-auto px-6 py-8 space-y-6">
+${projectCapsules.map(c => `        {/* ${c.name} */}
+        <${c.type}Capsule
+          ${Object.entries(c.props).map(([k, v]) => {
+            if (typeof v === 'string') return `${k}="${v}"`
+            return `${k}={${JSON.stringify(v)}}`
+          }).join('\n          ')}
+        />`).join('\n\n')}
+      </main>
+    </div>
+  )
+}`,
+                  desktop: `// ${project.name} - Tauri Desktop App
+use tauri::Window;
+use serde::{Deserialize, Serialize};
+
+// Theme Configuration
+pub struct Theme {
+    pub primary: &'static str,
+    pub secondary: &'static str,
+    pub accent: &'static str,
+}
+
+pub const APP_THEME: Theme = Theme {
+    primary: "${editTheme.primary || '#3b82f6'}",
+    secondary: "${editTheme.secondary || '#8b5cf6'}",
+    accent: "${editTheme.accent || '#06b6d4'}",
+};
+
+// App State
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AppState {
+    pub loading: bool,
+    pub theme: String,
+}
+
+impl Default for AppState {
+    fn default() -> Self {
+        Self {
+            loading: false,
+            theme: "default".to_string(),
+        }
+    }
+}
+
+${projectCapsules.map(c => `// ${c.name} Component Props
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ${c.type}Props {
+    ${Object.entries(c.props).map(([k]) => `pub ${k}: String,`).join('\n    ')}
+}
+
+#[tauri::command]
+pub fn render_${c.type.toLowerCase()}(
+    window: Window,
+    props: ${c.type}Props
+) -> Result<String, String> {
+    Ok(format!("Rendered ${c.type} component"))
+}`).join('\n\n')}
+
+// Main App Handler
+fn main() {
+    tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![
+${projectCapsules.map(c => `            render_${c.type.toLowerCase()},`).join('\n')}
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}`,
+                }}
+                fileName={{
+                  ios: `${project.name.replace(/\s+/g, '')}App.swift`,
+                  android: 'MainActivity.kt',
+                  web: 'App.tsx',
+                  desktop: 'main.rs',
+                }}
+              />
+
+              {/* Individual Capsule Code */}
+              {projectCapsules.length > 0 && (
+                <div className="rounded-xl border border-border bg-background p-6">
+                  <h3 className="font-semibold mb-4">Código por Cápsula</h3>
+                  <div className="space-y-4">
+                    {projectCapsules.map((capsule) => (
+                      <details key={capsule.id} className="group">
+                        <summary className="cursor-pointer flex items-center justify-between rounded-lg bg-muted px-4 py-3 hover:bg-muted/80 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <span className="font-medium">{capsule.name}</span>
+                            <span className={`rounded px-2 py-0.5 text-xs ${categoryColors[capsule.category] || 'bg-gray-100 text-gray-700'}`}>
+                              {capsule.category}
+                            </span>
+                          </div>
+                          <IconChevronRight size={16} className="text-muted-foreground group-open:rotate-90 transition-transform" />
+                        </summary>
+                        <div className="mt-3 pl-2">
+                          <CodePreview
+                            code={{
+                              ios: `import SwiftUI
+
+struct ${capsule.type}View: View {
+    ${Object.entries(capsule.props).map(([k, v]) => `@State private var ${k}: ${typeof v === 'string' ? 'String' : typeof v === 'number' ? 'Int' : typeof v === 'boolean' ? 'Bool' : 'Any'} = ${JSON.stringify(v)}`).join('\n    ')}
+
+    var body: some View {
+        VStack(spacing: 12) {
+            // ${capsule.name} implementation
+            Text("${capsule.name}")
+                .font(.headline)
+
+            // Props: ${Object.keys(capsule.props).join(', ')}
+        }
+        .padding()
+        .background(Color.primary.opacity(0.1))
+        .cornerRadius(12)
+    }
+}
+
+#Preview {
+    ${capsule.type}View()
+}`,
+                              android: `package com.hublab.components
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+
+@Composable
+fun ${capsule.type}Component(
+    ${Object.entries(capsule.props).map(([k, v]) => `${k}: ${typeof v === 'string' ? 'String' : typeof v === 'number' ? 'Int' : typeof v === 'boolean' ? 'Boolean' : 'Any'} = ${JSON.stringify(v)}`).join(',\n    ')}
+) {
+    var loading by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // ${capsule.name} implementation
+        Text(
+            text = "${capsule.name}",
+            style = MaterialTheme.typography.headlineSmall
+        )
+
+        // Props: ${Object.keys(capsule.props).join(', ')}
+    }
+}
+
+@Preview
+@Composable
+fun ${capsule.type}ComponentPreview() {
+    ${capsule.type}Component()
+}`,
+                              web: `'use client'
+
+import React, { useState } from 'react'
+
+interface ${capsule.type}Props {
+  ${Object.entries(capsule.props).map(([k, v]) => `${k}?: ${typeof v === 'string' ? 'string' : typeof v === 'number' ? 'number' : typeof v === 'boolean' ? 'boolean' : 'any'}`).join('\n  ')}
+  className?: string
+}
+
+export function ${capsule.type}Capsule({
+  ${Object.entries(capsule.props).map(([k, v]) => `${k} = ${JSON.stringify(v)}`).join(',\n  ')},
+  className = ''
+}: ${capsule.type}Props) {
+  const [loading, setLoading] = useState(false)
+
+  return (
+    <div className={\`rounded-xl border p-6 \${className}\`}>
+      {/* ${capsule.name} implementation */}
+      <h3 className="font-semibold">${capsule.name}</h3>
+
+      {/* Props: ${Object.keys(capsule.props).join(', ')} */}
+    </div>
+  )
+}
+
+export default ${capsule.type}Capsule`,
+                              desktop: `use serde::{Deserialize, Serialize};
+use tauri::Window;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ${capsule.type}Props {
+    ${Object.entries(capsule.props).map(([k]) => `pub ${k}: String,`).join('\n    ')}
+}
+
+impl Default for ${capsule.type}Props {
+    fn default() -> Self {
+        Self {
+            ${Object.entries(capsule.props).map(([k, v]) => `${k}: ${JSON.stringify(String(v))}.to_string(),`).join('\n            ')}
+        }
+    }
+}
+
+#[tauri::command]
+pub fn render_${capsule.type.toLowerCase()}(
+    window: Window,
+    props: ${capsule.type}Props
+) -> Result<String, String> {
+    // ${capsule.name} implementation
+    Ok(format!(
+        "Rendered ${capsule.type} with props: {:?}",
+        props
+    ))
+}
+
+// Register in main.rs:
+// .invoke_handler(tauri::generate_handler![render_${capsule.type.toLowerCase()}])`,
+                            }}
+                            fileName={{
+                              ios: `${capsule.type}View.swift`,
+                              android: `${capsule.type}Component.kt`,
+                              web: `${capsule.type}Capsule.tsx`,
+                              desktop: `${capsule.type.toLowerCase()}.rs`,
+                            }}
+                          />
+                        </div>
+                      </details>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {activeTab === 'theme' && (
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-xl border border-border bg-background p-6">
@@ -496,7 +903,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
               <div>
                 <label className="text-sm font-medium">Plataformas</label>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {['ios', 'android', 'web', 'desktop'].map((platform) => {
+                  {(['ios', 'android', 'web', 'desktop'] as Platform[]).map((platform) => {
                     const Icon = platformIcons[platform]
                     const isActive = editPlatforms.includes(platform)
                     return (

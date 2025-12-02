@@ -686,7 +686,7 @@ export function VoiceRecorder({
     },
     ios: {
       framework: 'swiftui',
-      minimumVersion: '15.0',
+      minVersion: '15.0',
       dependencies: ['AVFoundation'],
       files: [
         {
@@ -1173,7 +1173,7 @@ struct Audio_Previews: PreviewProvider {
     },
     android: {
       framework: 'compose',
-      minimumVersion: '24',
+      minSdk: 24,
       dependencies: ['androidx.media3:media3-exoplayer'],
       files: [
         {
@@ -1842,16 +1842,16 @@ export { AudioPlayer, AudioPlaylist, VoiceRecorder } from './Audio'
   },
   props: [
     { name: 'src', type: 'string', description: 'Audio source URL', required: true },
-    { name: 'title', type: 'string', description: 'Track title' },
-    { name: 'artist', type: 'string', description: 'Artist name' },
-    { name: 'coverImage', type: 'string', description: 'Album cover image URL' },
-    { name: 'autoPlay', type: 'boolean', description: 'Auto-play audio', default: false },
-    { name: 'loop', type: 'boolean', description: 'Loop audio', default: false },
-    { name: 'showWaveform', type: 'boolean', description: 'Show waveform visualization', default: false },
-    { name: 'variant', type: "'default' | 'minimal' | 'card'", description: 'Player style variant', default: 'default' },
-    { name: 'onPlay', type: '() => void', description: 'Callback when audio plays' },
-    { name: 'onPause', type: '() => void', description: 'Callback when audio pauses' },
-    { name: 'onEnded', type: '() => void', description: 'Callback when audio ends' }
+    { name: 'title', type: 'string', description: 'Track title', required: false },
+    { name: 'artist', type: 'string', description: 'Artist name', required: false },
+    { name: 'coverImage', type: 'string', description: 'Album cover image URL', required: false },
+    { name: 'autoPlay', type: 'boolean', description: 'Auto-play audio', default: false, required: false },
+    { name: 'loop', type: 'boolean', description: 'Loop audio', default: false, required: false },
+    { name: 'showWaveform', type: 'boolean', description: 'Show waveform visualization', default: false, required: false },
+    { name: 'variant', type: 'select', options: ['default', 'minimal', 'card'], description: 'Player style variant', default: 'default', required: false },
+    { name: 'onPlay', type: 'action', description: 'Callback when audio plays', required: false },
+    { name: 'onPause', type: 'action', description: 'Callback when audio pauses', required: false },
+    { name: 'onEnded', type: 'action', description: 'Callback when audio ends', required: false }
   ],
   examples: [
     {

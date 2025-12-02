@@ -23,7 +23,7 @@ export function useCapsules() {
 
   const filterByCategory = (category: string) => {
     if (category === 'all' || category === 'Todos') return capsules
-    return getCapsulesByCategory(category)
+    return getCapsulesByCategory(category as any)
   }
 
   const filterByTag = (tag: string) => {

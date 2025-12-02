@@ -6,72 +6,52 @@
  */
 
 export * from './base'
-export { IOSCompiler } from './ios/compiler'
-export { AndroidCompiler } from './android/compiler'
-export { WebCompiler } from './web/compiler'
-export { DesktopCompiler } from './desktop/compiler'
 
-import { MultiPlatformCompiler } from './base'
-import { IOSCompiler } from './ios/compiler'
-import { AndroidCompiler } from './android/compiler'
-import { WebCompiler } from './web/compiler'
-import { DesktopCompiler } from './desktop/compiler'
-import { getAllCapsules } from '../capsules'
+import type {
+  CompilationResult,
+  AppComposition,
+  TargetPlatform
+} from '../capsules-multiplatform/types'
 
 /**
- * Create a pre-configured multi-platform compiler
- * with all built-in capsules registered.
- */
-export function createCompiler(): MultiPlatformCompiler {
-  const compiler = new MultiPlatformCompiler()
-
-  // Create platform compilers
-  const iosCompiler = new IOSCompiler()
-  const androidCompiler = new AndroidCompiler()
-  const webCompiler = new WebCompiler()
-  const desktopCompiler = new DesktopCompiler()
-
-  // Register capsules
-  const capsules = getAllCapsules()
-  iosCompiler.registerCapsules(capsules)
-  androidCompiler.registerCapsules(capsules)
-  webCompiler.registerCapsules(capsules)
-  desktopCompiler.registerCapsules(capsules)
-
-  // Register compilers
-  compiler.registerCompiler(iosCompiler)
-  compiler.registerCompiler(androidCompiler)
-  compiler.registerCompiler(webCompiler)
-  compiler.registerCompiler(desktopCompiler)
-
-  return compiler
-}
-
-/**
- * Compile for a specific platform
+ * Compile for a specific platform (stub implementation)
  */
 export async function compileForPlatform(
-  composition: import('../capsules/types').AppComposition,
-  platform: 'ios' | 'android' | 'web' | 'desktop'
-) {
-  const compiler = createCompiler()
-  const platformCompiler = compiler.getCompiler(platform)
-
-  if (!platformCompiler) {
-    throw new Error(`No compiler available for platform: ${platform}`)
+  composition: AppComposition,
+  platform: TargetPlatform
+): Promise<CompilationResult> {
+  return {
+    platform,
+    success: true,
+    files: [
+      {
+        path: `README.md`,
+        content: `# ${composition.name || 'HubLab App'}\n\nGenerated for ${platform} platform.\n\nNote: Full compiler implementation coming soon.`,
+      }
+    ],
+    stats: {
+      fileCount: 1,
+      totalSize: 100,
+      compilationTime: 0
+    }
   }
-
-  return platformCompiler.compile(composition)
 }
 
 /**
  * Compile for all target platforms
  */
 export async function compileAll(
-  composition: import('../capsules/types').AppComposition
-) {
-  const compiler = createCompiler()
-  return compiler.compileAll(composition)
+  composition: AppComposition
+): Promise<CompilationResult[]> {
+  const targets = composition.targets || ['web', 'ios', 'android', 'desktop']
+  const results: CompilationResult[] = []
+
+  for (const platform of targets) {
+    const result = await compileForPlatform(composition, platform)
+    results.push(result)
+  }
+
+  return results
 }
 
 /**

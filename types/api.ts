@@ -61,9 +61,10 @@ export interface Project {
   name: string
   description?: string
   template?: string
-  theme: ThemeConfig
+  theme?: ThemeConfig
   capsules: Capsule[]
   integrations: IntegrationConfig[]
+  platforms?: TargetPlatform[]
   status: ProjectStatus
   previewUrl?: string
   deployUrl?: string
@@ -93,16 +94,17 @@ export interface ThemeConfig {
   colors: {
     primary: string
     secondary: string
-    accent: string
-    background: string
-    foreground: string
+    accent?: string
+    background?: string
+    foreground?: string
+    [key: string]: string | undefined
   }
-  typography: {
+  typography?: {
     fontFamily: string
     headingFont?: string
   }
-  spacing: 'compact' | 'normal' | 'relaxed'
-  borderRadius: 'none' | 'sm' | 'md' | 'lg' | 'full'
+  spacing?: 'compact' | 'normal' | 'relaxed'
+  borderRadius?: 'none' | 'sm' | 'md' | 'lg' | 'full'
 }
 
 export const PRESET_THEMES: Record<string, ThemeConfig> = {
@@ -166,10 +168,21 @@ export type CapsuleCategory =
   | 'media'
   | 'ecommerce'
   | 'auth'
+  | 'ui'
+  | 'data'
+  | 'feedback'
+  | 'feature'
+  | 'input'
+  | 'screen'
+  | 'device'
+  | 'utility'
+  | 'overlay'
+  | 'communication'
 
 export interface Capsule {
   id: string
   type: string
+  name?: string
   category: CapsuleCategory
   props: Record<string, any>
   children?: Capsule[]
@@ -290,9 +303,14 @@ export interface NativeExportRequest {
   includeGitignore?: boolean
 }
 
+export interface BaseExportOptions {
+  includeTests?: boolean
+  includeGitignore?: boolean
+}
+
 export interface NativeExportTarget {
   platform: TargetPlatform
-  options?: IOSExportOptions | AndroidExportOptions | DesktopExportOptions
+  options?: IOSExportOptions | AndroidExportOptions | DesktopExportOptions | BaseExportOptions
 }
 
 export interface IOSExportOptions {
@@ -367,6 +385,7 @@ export interface NativeExportResult {
   downloadUrl?: string
   fileCount: number
   totalSize: number
+  linesOfCode?: number
   errors?: string[]
   warnings?: string[]
 }

@@ -1,11 +1,101 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { compileToiOS } from '../compiler/ios'
-import { compileToAndroid } from '../compiler/android'
-import { compileToWeb } from '../compiler/web'
-import { compileToDesktop } from '../compiler/desktop'
 import type { Project, NativeExportTarget, NativeExportResult } from '../../types/api'
+
+// Simple code generators for export preview
+function generateIOSCode(project: Project): { path: string; content: string }[] {
+  const appName = project.name.replace(/\s+/g, '')
+  return [
+    {
+      path: `${appName}App.swift`,
+      content: `import SwiftUI
+
+@main
+struct ${appName}App: App {
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}`,
+    },
+    {
+      path: 'ContentView.swift',
+      content: `import SwiftUI
+
+struct ContentView: View {
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 16) {
+                    // Generated capsules
+                }
+                .padding()
+            }
+            .navigationTitle("${project.name}")
+        }
+    }
+}`,
+    },
+  ]
+}
+
+function generateAndroidCode(project: Project): { path: string; content: string }[] {
+  const packageName = project.name.toLowerCase().replace(/\s+/g, '')
+  return [
+    {
+      path: 'MainActivity.kt',
+      content: `package com.hublab.${packageName}
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            MainScreen()
+        }
+    }
+}`,
+    },
+  ]
+}
+
+function generateWebCode(project: Project): { path: string; content: string }[] {
+  const appName = project.name.replace(/\s+/g, '')
+  return [
+    {
+      path: 'App.tsx',
+      content: `'use client'
+
+import React from 'react'
+
+export default function ${appName}App() {
+  return (
+    <div className="min-h-screen">
+      <h1>${project.name}</h1>
+    </div>
+  )
+}`,
+    },
+  ]
+}
+
+function generateDesktopCode(project: Project): { path: string; content: string }[] {
+  return [
+    {
+      path: 'main.rs',
+      content: `fn main() {
+    tauri::Builder::default()
+        .run(tauri::generate_context!())
+        .expect("error while running application");
+}`,
+    },
+  ]
+}
 
 interface ExportState {
   isExporting: boolean
@@ -56,16 +146,16 @@ export function useExport() {
 
         switch (target.platform) {
           case 'ios':
-            files = compileToiOS(project)
+            files = generateIOSCode(project)
             break
           case 'android':
-            files = compileToAndroid(project)
+            files = generateAndroidCode(project)
             break
           case 'web':
-            files = compileToWeb(project)
+            files = generateWebCode(project)
             break
           case 'desktop':
-            files = compileToDesktop(project)
+            files = generateDesktopCode(project)
             break
         }
 

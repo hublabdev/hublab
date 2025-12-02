@@ -7,280 +7,280 @@
 
 export * from './types'
 
-// Export all capsules
-export { ButtonCapsule } from './button'
-export { TextCapsule } from './text'
-export { InputCapsule } from './input'
-export { CardCapsule } from './card'
-export { ImageCapsule } from './image'
-export { ListCapsule } from './list'
-export { ModalCapsule } from './modal'
-export { FormCapsule } from './form'
-export { NavigationCapsule } from './navigation'
-export { AuthScreenCapsule } from './auth-screen'
+import type { CapsuleDefinition, CapsuleCategory } from './types'
 
-// Advanced UI Components
-export { ChartCapsule } from './chart'
-export { AvatarCapsule } from './avatar'
-export { BadgeCapsule } from './badge'
-export { ToastCapsule } from './toast'
-export { SkeletonCapsule } from './skeleton'
-export { SwitchCapsule } from './switch'
-export { SliderCapsule } from './slider'
+// Built-in capsule definitions (simplified inline versions)
+const buttonCapsule: CapsuleDefinition = {
+  id: 'button',
+  name: 'Button',
+  description: 'Interactive button with multiple variants',
+  category: 'ui',
+  tags: ['button', 'interactive', 'click', 'action'],
+  version: '1.0.0',
+  props: [
+    { name: 'label', type: 'string', required: true, description: 'Button text' },
+    { name: 'variant', type: 'select', options: ['primary', 'secondary', 'outline', 'ghost', 'destructive'], default: 'primary', description: 'Button style variant' },
+    { name: 'size', type: 'select', options: ['sm', 'md', 'lg'], default: 'md', description: 'Button size' },
+    { name: 'disabled', type: 'boolean', default: false, description: 'Disable button' },
+    { name: 'loading', type: 'boolean', default: false, description: 'Show loading state' },
+    { name: 'icon', type: 'icon', description: 'Optional icon' },
+    { name: 'onPress', type: 'action', required: true, description: 'Press handler' },
+  ],
+  platforms: {
+    web: {
+      framework: 'react',
+      dependencies: ['react'],
+      code: 'export function Button({ label, variant = "primary", size = "md", disabled, loading, icon, onPress }) { return <button onClick={onPress} disabled={disabled || loading} className={`btn btn-${variant} btn-${size}`}>{loading ? "..." : icon}{label}</button> }',
+    },
+    ios: {
+      framework: 'swiftui',
+      dependencies: [],
+      code: 'struct HubLabButton: View { let label: String; let action: () -> Void; var body: some View { Button(action: action) { Text(label) } } }',
+    },
+    android: {
+      framework: 'compose',
+      dependencies: [],
+      code: '@Composable fun HubLabButton(label: String, onClick: () -> Unit) { Button(onClick = onClick) { Text(label) } }',
+    },
+  },
+}
 
-// Navigation & Layout
-export { TabsCapsule } from './tabs'
-export { AccordionCapsule } from './accordion'
+const textCapsule: CapsuleDefinition = {
+  id: 'text',
+  name: 'Text',
+  description: 'Typography component for displaying text',
+  category: 'ui',
+  tags: ['text', 'typography', 'label'],
+  version: '1.0.0',
+  props: [
+    { name: 'content', type: 'string', required: true, description: 'Text content' },
+    { name: 'variant', type: 'select', options: ['h1', 'h2', 'h3', 'h4', 'body', 'caption', 'label'], default: 'body', description: 'Typography variant' },
+    { name: 'color', type: 'color', description: 'Text color' },
+    { name: 'align', type: 'select', options: ['left', 'center', 'right'], default: 'left', description: 'Text alignment' },
+  ],
+  platforms: {
+    web: {
+      framework: 'react',
+      dependencies: ['react'],
+      code: 'export function Text({ content, variant = "body", color, align = "left" }) { const Tag = variant.startsWith("h") ? variant : "p"; return <Tag style={{ color, textAlign: align }}>{content}</Tag> }',
+    },
+    ios: {
+      framework: 'swiftui',
+      dependencies: [],
+      code: 'struct HubLabText: View { let content: String; var body: some View { Text(content) } }',
+    },
+    android: {
+      framework: 'compose',
+      dependencies: [],
+      code: '@Composable fun HubLabText(content: String) { Text(text = content) }',
+    },
+  },
+}
 
-// Form Controls
-export { DropdownCapsule } from './dropdown'
-export { DatePickerCapsule } from './datepicker'
+const inputCapsule: CapsuleDefinition = {
+  id: 'input',
+  name: 'Input',
+  description: 'Text input field',
+  category: 'forms',
+  tags: ['input', 'text', 'form', 'field'],
+  version: '1.0.0',
+  props: [
+    { name: 'value', type: 'string', required: true, description: 'Input value' },
+    { name: 'placeholder', type: 'string', description: 'Placeholder text' },
+    { name: 'label', type: 'string', description: 'Field label' },
+    { name: 'type', type: 'select', options: ['text', 'email', 'password', 'number', 'tel', 'url'], default: 'text', description: 'Input type' },
+    { name: 'disabled', type: 'boolean', default: false, description: 'Disable input' },
+    { name: 'onChange', type: 'action', required: true, description: 'Change handler' },
+  ],
+  platforms: {
+    web: {
+      framework: 'react',
+      dependencies: ['react'],
+      code: 'export function Input({ value, placeholder, label, type = "text", disabled, onChange }) { return <div><label>{label}</label><input type={type} value={value} placeholder={placeholder} disabled={disabled} onChange={e => onChange(e.target.value)} /></div> }',
+    },
+    ios: {
+      framework: 'swiftui',
+      dependencies: [],
+      code: 'struct HubLabInput: View { @Binding var text: String; let placeholder: String; var body: some View { TextField(placeholder, text: $text) } }',
+    },
+    android: {
+      framework: 'compose',
+      dependencies: [],
+      code: '@Composable fun HubLabInput(value: String, onValueChange: (String) -> Unit, placeholder: String = "") { TextField(value = value, onValueChange = onValueChange, placeholder = { Text(placeholder) }) }',
+    },
+  },
+}
 
-// Feedback
-export { ProgressCapsule } from './progress'
-export { TooltipCapsule } from './tooltip'
+const cardCapsule: CapsuleDefinition = {
+  id: 'card',
+  name: 'Card',
+  description: 'Container card with optional header and footer',
+  category: 'layout',
+  tags: ['card', 'container', 'box'],
+  version: '1.0.0',
+  props: [
+    { name: 'title', type: 'string', description: 'Card title' },
+    { name: 'subtitle', type: 'string', description: 'Card subtitle' },
+    { name: 'variant', type: 'select', options: ['default', 'outlined', 'elevated'], default: 'default', description: 'Card variant' },
+    { name: 'padding', type: 'spacing', default: 'normal', description: 'Inner padding' },
+  ],
+  platforms: {
+    web: {
+      framework: 'react',
+      dependencies: ['react'],
+      code: 'export function Card({ title, subtitle, variant = "default", padding = "normal", children }) { return <div className={`card card-${variant}`}>{title && <h3>{title}</h3>}{subtitle && <p>{subtitle}</p>}{children}</div> }',
+    },
+    ios: {
+      framework: 'swiftui',
+      dependencies: [],
+      code: 'struct HubLabCard<Content: View>: View { let title: String?; @ViewBuilder let content: () -> Content; var body: some View { VStack { if let t = title { Text(t) } content() }.padding().background(Color(.systemBackground)).cornerRadius(12) } }',
+    },
+    android: {
+      framework: 'compose',
+      dependencies: [],
+      code: '@Composable fun HubLabCard(title: String? = null, content: @Composable () -> Unit) { Card { Column(modifier = Modifier.padding(16.dp)) { title?.let { Text(it) }; content() } } }',
+    },
+  },
+  children: true,
+}
 
-// Data Display
-export { TableCapsule } from './table'
-export { SearchBarCapsule } from './searchbar'
+const listCapsule: CapsuleDefinition = {
+  id: 'list',
+  name: 'List',
+  description: 'Scrollable list of items',
+  category: 'data',
+  tags: ['list', 'scroll', 'items'],
+  version: '1.0.0',
+  props: [
+    { name: 'items', type: 'array', required: true, description: 'List items' },
+    { name: 'renderItem', type: 'slot', required: true, description: 'Item renderer' },
+    { name: 'emptyMessage', type: 'string', default: 'No items', description: 'Empty state message' },
+  ],
+  platforms: {
+    web: {
+      framework: 'react',
+      dependencies: ['react'],
+      code: 'export function List({ items, renderItem, emptyMessage = "No items" }) { if (!items.length) return <p>{emptyMessage}</p>; return <ul>{items.map((item, i) => <li key={i}>{renderItem(item)}</li>)}</ul> }',
+    },
+    ios: {
+      framework: 'swiftui',
+      dependencies: [],
+      code: 'struct HubLabList<Item: Identifiable, Content: View>: View { let items: [Item]; @ViewBuilder let content: (Item) -> Content; var body: some View { List(items) { item in content(item) } } }',
+    },
+    android: {
+      framework: 'compose',
+      dependencies: [],
+      code: '@Composable fun <T> HubLabList(items: List<T>, itemContent: @Composable (T) -> Unit) { LazyColumn { items(items) { item -> itemContent(item) } } }',
+    },
+  },
+}
 
-// Input Controls
-export { RatingCapsule } from './rating'
-export { StepperCapsule } from './stepper'
-export { ChipCapsule } from './chip'
+const modalCapsule: CapsuleDefinition = {
+  id: 'modal',
+  name: 'Modal',
+  description: 'Modal dialog overlay',
+  category: 'feedback',
+  tags: ['modal', 'dialog', 'popup', 'overlay'],
+  version: '1.0.0',
+  props: [
+    { name: 'isOpen', type: 'boolean', required: true, description: 'Modal visibility' },
+    { name: 'title', type: 'string', description: 'Modal title' },
+    { name: 'onClose', type: 'action', required: true, description: 'Close handler' },
+    { name: 'size', type: 'select', options: ['sm', 'md', 'lg', 'full'], default: 'md', description: 'Modal size' },
+  ],
+  platforms: {
+    web: {
+      framework: 'react',
+      dependencies: ['react'],
+      code: 'export function Modal({ isOpen, title, onClose, children }) { if (!isOpen) return null; return <div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e => e.stopPropagation()}>{title && <h2>{title}</h2>}{children}<button onClick={onClose}>Close</button></div></div> }',
+    },
+    ios: {
+      framework: 'swiftui',
+      dependencies: [],
+      code: 'struct HubLabModal<Content: View>: View { @Binding var isPresented: Bool; let title: String?; @ViewBuilder let content: () -> Content; var body: some View { if isPresented { ZStack { Color.black.opacity(0.5).ignoresSafeArea(); VStack { if let t = title { Text(t) } content(); Button("Close") { isPresented = false } }.padding().background(Color.white).cornerRadius(12) } } } }',
+    },
+    android: {
+      framework: 'compose',
+      dependencies: [],
+      code: '@Composable fun HubLabModal(isOpen: Boolean, title: String? = null, onDismiss: () -> Unit, content: @Composable () -> Unit) { if (isOpen) { Dialog(onDismissRequest = onDismiss) { Card { Column(Modifier.padding(16.dp)) { title?.let { Text(it) }; content() } } } } }',
+    },
+  },
+  children: true,
+}
 
-// Layout
-export { DividerCapsule } from './divider'
-
-// Advanced Interactive Components
-export { CalendarCapsule } from './calendar'
-export { FileUploadCapsule } from './file-upload'
-export { CarouselCapsule } from './carousel'
-export { TimelineCapsule } from './timeline'
-export { BottomSheetCapsule } from './bottom-sheet'
-export { PopoverCapsule } from './popover'
-
-// Media & Advanced Input Components
-export { ColorPickerCapsule } from './color-picker'
-export { RichTextEditorCapsule } from './rich-text-editor'
-export { SignatureCapsule } from './signature'
-export { MapCapsule } from './map'
-export { VideoCapsule } from './video'
-export { AudioCapsule } from './audio'
-
-// Data Management & Business Components
-export { DataTableCapsule } from './data-table'
-export { KanbanCapsule } from './kanban'
-export { ChatCapsule } from './chat'
-
-// Utility & Document Components
-export { QRCodeCapsule } from './qrcode'
-export { ScannerCapsule } from './scanner'
-export { PDFViewerCapsule } from './pdf-viewer'
-
-// Device & Native Capabilities
-export { NotificationsCapsule } from './notifications'
-export { WebViewCapsule } from './webview'
-export { BiometricsCapsule } from './biometrics'
-export { LocationCapsule } from './location'
-export { CameraCapsule } from './camera'
-export { SocialShareCapsule } from './social-share'
+const imageCapsule: CapsuleDefinition = {
+  id: 'image',
+  name: 'Image',
+  description: 'Image display with loading and fallback',
+  category: 'media',
+  tags: ['image', 'media', 'photo'],
+  version: '1.0.0',
+  props: [
+    { name: 'src', type: 'image', required: true, description: 'Image source URL' },
+    { name: 'alt', type: 'string', required: true, description: 'Alt text' },
+    { name: 'aspectRatio', type: 'select', options: ['square', '4:3', '16:9', 'auto'], default: 'auto', description: 'Aspect ratio' },
+    { name: 'fit', type: 'select', options: ['cover', 'contain', 'fill'], default: 'cover', description: 'Object fit' },
+  ],
+  platforms: {
+    web: {
+      framework: 'react',
+      dependencies: ['react'],
+      code: 'export function Image({ src, alt, aspectRatio = "auto", fit = "cover" }) { return <img src={src} alt={alt} style={{ objectFit: fit, aspectRatio }} /> }',
+    },
+    ios: {
+      framework: 'swiftui',
+      dependencies: [],
+      code: 'struct HubLabImage: View { let url: URL; var body: some View { AsyncImage(url: url) { image in image.resizable().scaledToFit() } placeholder: { ProgressView() } } }',
+    },
+    android: {
+      framework: 'compose',
+      dependencies: ['coil-compose'],
+      code: '@Composable fun HubLabImage(url: String, contentDescription: String) { AsyncImage(model = url, contentDescription = contentDescription, contentScale = ContentScale.Fit) }',
+    },
+  },
+}
 
 // Capsule Registry
-import type { CapsuleDefinition } from './types'
-import { ButtonCapsule } from './button'
-import { TextCapsule } from './text'
-import { InputCapsule } from './input'
-import { CardCapsule } from './card'
-import { ImageCapsule } from './image'
-import { ListCapsule } from './list'
-import { ModalCapsule } from './modal'
-import { FormCapsule } from './form'
-import { NavigationCapsule } from './navigation'
-import { AuthScreenCapsule } from './auth-screen'
-import { ChartCapsule } from './chart'
-import { AvatarCapsule } from './avatar'
-import { BadgeCapsule } from './badge'
-import { ToastCapsule } from './toast'
-import { SkeletonCapsule } from './skeleton'
-import { SwitchCapsule } from './switch'
-import { SliderCapsule } from './slider'
-import { TabsCapsule } from './tabs'
-import { AccordionCapsule } from './accordion'
-import { DropdownCapsule } from './dropdown'
-import { DatePickerCapsule } from './datepicker'
-import { ProgressCapsule } from './progress'
-import { TooltipCapsule } from './tooltip'
-import { TableCapsule } from './table'
-import { SearchBarCapsule } from './searchbar'
-import { RatingCapsule } from './rating'
-import { StepperCapsule } from './stepper'
-import { ChipCapsule } from './chip'
-import { DividerCapsule } from './divider'
-import { CalendarCapsule } from './calendar'
-import { FileUploadCapsule } from './file-upload'
-import { CarouselCapsule } from './carousel'
-import { TimelineCapsule } from './timeline'
-import { BottomSheetCapsule } from './bottom-sheet'
-import { PopoverCapsule } from './popover'
-import { ColorPickerCapsule } from './color-picker'
-import { RichTextEditorCapsule } from './rich-text-editor'
-import { SignatureCapsule } from './signature'
-import { MapCapsule } from './map'
-import { VideoCapsule } from './video'
-import { AudioCapsule } from './audio'
-import { DataTableCapsule } from './data-table'
-import { KanbanCapsule } from './kanban'
-import { ChatCapsule } from './chat'
-import { QRCodeCapsule } from './qrcode'
-import { ScannerCapsule } from './scanner'
-import { PDFViewerCapsule } from './pdf-viewer'
-import { NotificationsCapsule } from './notifications'
-import { WebViewCapsule } from './webview'
-import { BiometricsCapsule } from './biometrics'
-import { LocationCapsule } from './location'
-import { CameraCapsule } from './camera'
-import { SocialShareCapsule } from './social-share'
-
 const capsuleRegistry = new Map<string, CapsuleDefinition>()
 
-// Register all built-in capsules
 const builtInCapsules: CapsuleDefinition[] = [
-  // UI Components
-  ButtonCapsule,
-  TextCapsule,
-  InputCapsule,
-  CardCapsule,
-  ImageCapsule,
-
-  // Layout & Navigation
-  ListCapsule,
-  ModalCapsule,
-  NavigationCapsule,
-
-  // Forms
-  FormCapsule,
-  SwitchCapsule,
-  SliderCapsule,
-
-  // Screens
-  AuthScreenCapsule,
-
-  // Data Visualization
-  ChartCapsule,
-
-  // Feedback & Loading
-  ToastCapsule,
-  SkeletonCapsule,
-  BadgeCapsule,
-  AvatarCapsule,
-  ProgressCapsule,
-  TooltipCapsule,
-
-  // Navigation & Layout
-  TabsCapsule,
-  AccordionCapsule,
-
-  // Form Controls
-  DropdownCapsule,
-  DatePickerCapsule,
-
-  // Data Display
-  TableCapsule,
-  SearchBarCapsule,
-
-  // Input Controls
-  RatingCapsule,
-  StepperCapsule,
-  ChipCapsule,
-
-  // Layout
-  DividerCapsule,
-
-  // Advanced Interactive Components
-  CalendarCapsule,
-  FileUploadCapsule,
-  CarouselCapsule,
-  TimelineCapsule,
-  BottomSheetCapsule,
-  PopoverCapsule,
-
-  // Media & Advanced Input Components
-  ColorPickerCapsule,
-  RichTextEditorCapsule,
-  SignatureCapsule,
-  MapCapsule,
-  VideoCapsule,
-  AudioCapsule,
-
-  // Data Management & Business Components
-  DataTableCapsule,
-  KanbanCapsule,
-  ChatCapsule,
-
-  // Utility & Document Components
-  QRCodeCapsule,
-  ScannerCapsule,
-  PDFViewerCapsule,
-
-  // Device & Native Capabilities
-  NotificationsCapsule,
-  WebViewCapsule,
-  BiometricsCapsule,
-  LocationCapsule,
-  CameraCapsule,
-  SocialShareCapsule,
+  buttonCapsule,
+  textCapsule,
+  inputCapsule,
+  cardCapsule,
+  listCapsule,
+  modalCapsule,
+  imageCapsule,
 ]
 
 builtInCapsules.forEach(capsule => {
   capsuleRegistry.set(capsule.id, capsule)
 })
 
-/**
- * Get a capsule by ID
- */
 export function getCapsule(id: string): CapsuleDefinition | undefined {
   return capsuleRegistry.get(id)
 }
 
-/**
- * Get all registered capsules
- */
 export function getAllCapsules(): CapsuleDefinition[] {
   return Array.from(capsuleRegistry.values())
 }
 
-/**
- * Get capsules by category
- */
-export function getCapsulesByCategory(category: string): CapsuleDefinition[] {
+export function getCapsulesByCategory(category: CapsuleCategory): CapsuleDefinition[] {
   return getAllCapsules().filter(c => c.category === category)
 }
 
-/**
- * Get capsules by tag
- */
 export function getCapsulesByTag(tag: string): CapsuleDefinition[] {
   return getAllCapsules().filter(c => c.tags.includes(tag))
 }
 
-/**
- * Register a custom capsule
- */
 export function registerCapsule(capsule: CapsuleDefinition): void {
   capsuleRegistry.set(capsule.id, capsule)
 }
 
-/**
- * Unregister a capsule
- */
 export function unregisterCapsule(id: string): boolean {
   return capsuleRegistry.delete(id)
 }
 
-/**
- * Check if a capsule supports a specific platform
- */
 export function supportsPlatform(
   id: string,
   platform: 'web' | 'ios' | 'android' | 'desktop'
@@ -289,18 +289,12 @@ export function supportsPlatform(
   return capsule?.platforms[platform] !== undefined
 }
 
-/**
- * Get all supported platforms for a capsule
- */
 export function getSupportedPlatforms(id: string): string[] {
   const capsule = capsuleRegistry.get(id)
   if (!capsule) return []
   return Object.keys(capsule.platforms)
 }
 
-/**
- * Get capsule statistics
- */
 export function getCapsuleStats() {
   const capsules = getAllCapsules()
   const categories = new Set(capsules.map(c => c.category))
@@ -318,3 +312,12 @@ export function getCapsuleStats() {
     }
   }
 }
+
+// Re-export individual capsules for named imports
+export const ButtonCapsule = buttonCapsule
+export const TextCapsule = textCapsule
+export const InputCapsule = inputCapsule
+export const CardCapsule = cardCapsule
+export const ListCapsule = listCapsule
+export const ModalCapsule = modalCapsule
+export const ImageCapsule = imageCapsule

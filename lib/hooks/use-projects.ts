@@ -85,7 +85,7 @@ let projectsStore: Project[] = [
       borderRadius: 'md',
     },
     capsules: [
-      { id: 'cap_8', type: 'chat', category: 'data-management', props: {} },
+      { id: 'cap_8', type: 'chat', category: 'communication', props: {} },
       { id: 'cap_9', type: 'avatar', category: 'layout', props: { size: 'lg' } },
       { id: 'cap_10', type: 'notifications', category: 'device', props: {} },
     ],

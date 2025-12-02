@@ -85,7 +85,7 @@ export default function CapsulesPage() {
 
     // Platform filter
     if (platformFilter !== 'all') {
-      result = result.filter((c) => c.platforms.includes(platformFilter as any))
+      result = result.filter((c) => c.platforms[platformFilter as keyof typeof c.platforms])
     }
 
     return result
@@ -176,7 +176,7 @@ export default function CapsulesPage() {
           { label: 'Total Cápsulas', value: stats.total, color: 'text-blue-500' },
           { label: 'iOS Compatible', value: stats.byPlatform.ios || 0, color: 'text-gray-500' },
           { label: 'Android Compatible', value: stats.byPlatform.android || 0, color: 'text-green-500' },
-          { label: 'Categorías', value: Object.keys(stats.byCategory).length, color: 'text-purple-500' },
+          { label: 'Categorías', value: stats.categories.length, color: 'text-purple-500' },
         ].map((stat) => (
           <div key={stat.label} className="rounded-xl border border-border bg-background p-4">
             <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
@@ -216,7 +216,7 @@ export default function CapsulesPage() {
 
                 <div className="mt-3 flex items-center justify-between">
                   <div className="flex items-center gap-1">
-                    {capsule.platforms.map((platform) => {
+                    {(Object.keys(capsule.platforms) as Array<keyof typeof capsule.platforms>).filter(p => capsule.platforms[p]).map((platform) => {
                       const Icon = platformIcons[platform]
                       if (!Icon) return null
                       return (
@@ -277,7 +277,7 @@ export default function CapsulesPage() {
               <div className="mt-4">
                 <h4 className="text-sm font-medium">Plataformas Soportadas</h4>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {selectedCapsule.platforms.map((platform) => {
+                  {(Object.keys(selectedCapsule.platforms) as Array<keyof typeof selectedCapsule.platforms>).filter(p => selectedCapsule.platforms[p]).map((platform) => {
                     const Icon = platformIcons[platform]
                     const labels: Record<string, string> = {
                       ios: 'iOS (SwiftUI)',
