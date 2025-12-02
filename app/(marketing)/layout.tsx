@@ -1,12 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import {
-  IconGitHub,
-  IconApple,
-  IconAndroid,
-  IconGlobe,
-  IconDesktop,
-} from '../../components/ui/icons'
+import { IconGitHub } from '../../components/ui/icons'
 
 function MarketingHeader() {
   return (
@@ -41,42 +35,16 @@ function MarketingHeader() {
 function MarketingFooter() {
   return (
     <footer className="border-t border-border bg-muted/30">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="flex flex-col items-center md:items-start">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
-                H
-              </div>
-              <span className="text-lg font-semibold">HubLab</span>
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
+              H
             </div>
-            <p className="mt-4 text-sm text-muted-foreground text-center md:text-left max-w-md">
-              Escribe una vez, despliega en todas las plataformas. Con código nativo real, no wrappers.
-            </p>
-            <div className="mt-4 flex items-center gap-2">
-              <IconApple size={16} className="text-muted-foreground" />
-              <IconAndroid size={16} className="text-muted-foreground" />
-              <IconGlobe size={16} className="text-muted-foreground" />
-              <IconDesktop size={16} className="text-muted-foreground" />
-            </div>
+            <span className="text-lg font-semibold">HubLab</span>
           </div>
-
-          <div className="flex items-center gap-4">
-            <a
-              href="https://github.com/hublabdev/hublab"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <IconGitHub size={20} />
-              <span className="text-sm">GitHub</span>
-            </a>
-          </div>
-        </div>
-
-        <div className="mt-8 border-t border-border pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            © 2024 HubLab. Open source bajo licencia MIT.
+            © 2025 HubLab. Open source under MIT license.
           </p>
         </div>
       </div>

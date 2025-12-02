@@ -12,7 +12,6 @@ import {
   IconChevronRight,
   IconCheck,
   IconGitHub,
-  IconStar,
 } from '../../components/ui/icons'
 
 const platforms = [
@@ -88,30 +87,6 @@ fun LoginScreen() {
 }`,
 }
 
-const testimonials = [
-  {
-    name: 'Sarah Chen',
-    role: 'Senior iOS Developer',
-    company: 'Fintech Startup',
-    quote: 'Finally, a tool that generates actual SwiftUI code I can be proud of. No more fighting with bridges.',
-    avatar: 'SC',
-  },
-  {
-    name: 'Marcus Johnson',
-    role: 'Mobile Lead',
-    company: 'E-commerce Platform',
-    quote: 'We shipped our Android app 3x faster. The Jetpack Compose output is production-ready.',
-    avatar: 'MJ',
-  },
-  {
-    name: 'Elena Rodriguez',
-    role: 'Full-Stack Developer',
-    company: 'SaaS Company',
-    quote: 'One codebase, four platforms. HubLab changed how we think about cross-platform development.',
-    avatar: 'ER',
-  },
-]
-
 function WaitlistForm() {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
@@ -128,9 +103,7 @@ function WaitlistForm() {
 
     setStatus('loading')
 
-    // Simulate API call - in production, connect to your backend/Netlify function
     try {
-      // For Netlify Forms, this will be handled automatically
       const formData = new FormData()
       formData.append('form-name', 'waitlist')
       formData.append('email', email)
@@ -138,7 +111,7 @@ function WaitlistForm() {
       await fetch('/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(formData as any).toString(),
+        body: new URLSearchParams(formData as unknown as Record<string, string>).toString(),
       })
 
       setStatus('success')
@@ -204,6 +177,11 @@ function WaitlistForm() {
 }
 
 export default function LandingPage() {
+  const scrollToWaitlist = (e: React.MouseEvent) => {
+    e.preventDefault()
+    document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   return (
     <div className="animate-fade-in">
       {/* Hero */}
@@ -237,23 +215,29 @@ export default function LandingPage() {
             </p>
 
             {/* Waitlist Form */}
-            <div className="mt-10">
+            <div id="waitlist" className="mt-10">
               <WaitlistForm />
               <p className="mt-4 text-sm text-muted-foreground">
-                Join 2,400+ developers on the waitlist. No spam, ever.
+                Join the waitlist. No spam, ever.
               </p>
             </div>
 
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <button
+                onClick={scrollToWaitlist}
+                className="flex items-center gap-2 rounded-lg bg-foreground text-background px-6 py-3 text-sm font-medium hover:bg-foreground/90 transition-colors"
+              >
+                Try Demo Now
+                <IconChevronRight size={16} />
+              </button>
               <a
                 href="https://github.com/hublabdev/hublab"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-lg bg-foreground text-background px-6 py-3 text-sm font-medium hover:bg-foreground/90 transition-colors"
+                className="flex items-center gap-2 rounded-lg border border-border px-6 py-3 text-sm font-medium hover:bg-muted transition-colors"
               >
                 <IconGitHub size={16} />
-                View on GitHub
-                <IconChevronRight size={16} />
+                Star on GitHub
               </a>
             </div>
 
@@ -268,30 +252,6 @@ export default function LandingPage() {
                   <div className="text-xs text-muted-foreground hidden sm:block">{platform.framework}</div>
                 </div>
               ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Social Proof */}
-      <section className="border-y border-border bg-muted/30 py-8">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-16 text-muted-foreground">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">2,400+</div>
-              <div className="text-sm">Developers</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">53+</div>
-              <div className="text-sm">Capsules</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">4</div>
-              <div className="text-sm">Platforms</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">100%</div>
-              <div className="text-sm">Native Code</div>
             </div>
           </div>
         </div>
@@ -365,42 +325,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold sm:text-4xl">Loved by developers</h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              See what early adopters are saying
-            </p>
-          </div>
-
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {testimonials.map((testimonial) => (
-              <div key={testimonial.name} className="rounded-xl border border-border bg-background p-6">
-                <div className="flex items-center gap-1 text-yellow-500 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <IconStar key={i} size={16} />
-                  ))}
-                </div>
-                <p className="text-muted-foreground italic">&ldquo;{testimonial.quote}&rdquo;</p>
-                <div className="mt-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-purple-600 text-white font-medium text-sm">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <div className="font-medium">{testimonial.name}</div>
-                    <div className="text-sm text-muted-foreground">{testimonial.role} at {testimonial.company}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Capsule Categories */}
-      <section className="border-y border-border bg-muted/30 py-24">
+      <section className="py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold sm:text-4xl">53+ Native Capsules</h2>
@@ -438,7 +364,7 @@ export default function LandingPage() {
       </section>
 
       {/* Comparison */}
-      <section className="py-24">
+      <section className="border-y border-border bg-muted/30 py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold sm:text-4xl">HubLab vs Other Solutions</h2>
@@ -506,14 +432,14 @@ export default function LandingPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="relative overflow-hidden border-t border-border py-24">
+      <section className="relative overflow-hidden py-24">
         <div className="absolute inset-0 bg-gradient-to-t from-primary/10 via-purple-500/5 to-transparent" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold sm:text-5xl">
             Ready to build native apps faster?
           </h2>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-            Join thousands of developers who are already using HubLab to ship native apps across all platforms.
+            Join developers who are using HubLab to ship native apps across all platforms.
           </p>
 
           <div className="mt-10">
