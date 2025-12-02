@@ -1,6 +1,6 @@
 'use client'
 
-import { Project, DEFAULT_THEME, TargetPlatform } from './types'
+import { Project, DEFAULT_THEME, TargetPlatform, CapsuleInstance } from './types'
 
 const STORAGE_KEY = 'hublab_projects'
 
@@ -28,12 +28,13 @@ export function createProject(data: {
   name: string
   description?: string
   targets?: TargetPlatform[]
+  capsules?: CapsuleInstance[]
 }): Project {
   const project: Project = {
     id: generateId(),
     name: data.name,
     description: data.description || '',
-    capsules: [],
+    capsules: data.capsules || [],
     theme: DEFAULT_THEME,
     targets: data.targets || ['web'],
     createdAt: new Date().toISOString(),
