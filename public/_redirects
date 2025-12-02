@@ -1,0 +1,8 @@
+# Netlify redirects
+# SPA fallback is handled by Next.js
+
+# API routes
+/api/*  /.netlify/functions/:splat  200
+
+# Static files
+/favicon.ico  /favicon.ico  200

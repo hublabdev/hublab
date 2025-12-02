@@ -1,0 +1,13 @@
+{
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    "react/no-unescaped-entities": "off"
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    ".next/",
+    "lib/capsules/_disabled/",
+    "lib/compiler/_disabled/",
+    "app/api/v1/projects/[id]/_disabled/"
+  ]
+}
