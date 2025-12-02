@@ -223,13 +223,13 @@ export default function LandingPage() {
             </div>
 
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button
-                onClick={scrollToWaitlist}
+              <a
+                href="/dashboard"
                 className="flex items-center gap-2 rounded-lg bg-foreground text-background px-6 py-3 text-sm font-medium hover:bg-foreground/90 transition-colors"
               >
                 Try Demo Now
                 <IconChevronRight size={16} />
-              </button>
+              </a>
               <a
                 href="https://github.com/hublabdev/hublab"
                 target="_blank"

@@ -29,5 +29,5 @@
     "**/*.tsx",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "lib/capsules/_disabled", "lib/compiler/_disabled", "app/api/v1/projects/[id]/_disabled"]
+  "exclude": ["node_modules", "hublab-core"]
 }
