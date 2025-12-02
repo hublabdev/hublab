@@ -131,22 +131,10 @@ export default function ProjectEditorPage() {
         {/* Capsule Library */}
         <div className="col-span-3 border border-border rounded-lg overflow-hidden bg-background">
           <div className="p-3 border-b border-border bg-muted/30">
-            <h2 className="font-medium text-sm">Capsules</h2>
+            <h2 className="font-medium text-sm">Capsules ({CAPSULE_DEFINITIONS.length})</h2>
           </div>
           <div className="p-2 overflow-y-auto h-[calc(100%-45px)]">
-            {CAPSULE_DEFINITIONS.map((def) => (
-              <button
-                key={def.type}
-                onClick={() => addCapsule(def.type)}
-                className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-muted text-left transition-colors"
-              >
-                <span className="text-xl">{def.icon}</span>
-                <div>
-                  <div className="text-sm font-medium">{def.name}</div>
-                  <div className="text-xs text-muted-foreground">{def.category}</div>
-                </div>
-              </button>
-            ))}
+            <CapsuleLibrary onAdd={addCapsule} />
           </div>
         </div>
 
@@ -257,6 +245,125 @@ export default function ProjectEditorPage() {
       {/* Export Modal */}
       {showExport && (
         <ExportModal project={project} onClose={() => setShowExport(false)} />
+      )}
+    </div>
+  )
+}
+
+// Category labels
+const CATEGORY_LABELS: Record<string, string> = {
+  ui: 'UI Components',
+  layout: 'Layout',
+  forms: 'Forms',
+  navigation: 'Navigation',
+  data: 'Data Display',
+  media: 'Media',
+  device: 'Device & Native',
+  feedback: 'Feedback',
+  advanced: 'Advanced',
+  auth: 'Authentication',
+}
+
+// Capsule Library with categories
+function CapsuleLibrary({ onAdd }: { onAdd: (type: string) => void }) {
+  const [search, setSearch] = useState('')
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['ui', 'forms']))
+
+  // Group capsules by category
+  type CapsuleDef = typeof CAPSULE_DEFINITIONS[number]
+  const categories = CAPSULE_DEFINITIONS.reduce((acc, def) => {
+    const cat = def.category
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(def)
+    return acc
+  }, {} as Record<string, CapsuleDef[]>)
+
+  // Filter by search
+  const filteredCategories = Object.entries(categories).reduce((acc, [cat, defs]) => {
+    const filtered = defs.filter(d =>
+      d.name.toLowerCase().includes(search.toLowerCase()) ||
+      d.description.toLowerCase().includes(search.toLowerCase())
+    )
+    if (filtered.length > 0) acc[cat] = filtered
+    return acc
+  }, {} as Record<string, CapsuleDef[]>)
+
+  const toggleCategory = (cat: string) => {
+    const newSet = new Set(expandedCategories)
+    if (newSet.has(cat)) newSet.delete(cat)
+    else newSet.add(cat)
+    setExpandedCategories(newSet)
+  }
+
+  return (
+    <div className="space-y-2">
+      {/* Search */}
+      <div className="sticky top-0 bg-background pb-2">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search capsules..."
+          className="w-full rounded-md border border-border bg-muted/30 px-3 py-1.5 text-sm focus:border-primary focus:outline-none"
+        />
+      </div>
+
+      {/* Categories */}
+      {Object.entries(filteredCategories).map(([category, defs]) => (
+        <div key={category} className="border border-border rounded-lg overflow-hidden">
+          <button
+            onClick={() => toggleCategory(category)}
+            className="w-full flex items-center justify-between p-2 bg-muted/30 hover:bg-muted/50 text-left"
+          >
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              {CATEGORY_LABELS[category] || category}
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">{defs.length}</span>
+              <svg
+                className={`w-4 h-4 transition-transform ${expandedCategories.has(category) ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+
+          {expandedCategories.has(category) && (
+            <div className="p-1">
+              {defs.map((def) => (
+                <button
+                  key={def.type}
+                  type="button"
+                  onClick={() => onAdd(def.type)}
+                  className="w-full flex items-center gap-2 p-2 rounded hover:bg-muted text-left transition-colors group"
+                >
+                  <span className="text-lg">{def.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium">{def.name}</div>
+                    <div className="text-xs text-muted-foreground truncate">{def.description}</div>
+                  </div>
+                  <svg
+                    className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+
+      {Object.keys(filteredCategories).length === 0 && (
+        <div className="text-center text-sm text-muted-foreground py-8">
+          No capsules found for "{search}"
+        </div>
       )}
     </div>
   )

@@ -239,6 +239,394 @@ export const CAPSULE_DEFINITIONS = [
       showLabel: { type: 'boolean' },
     },
   },
+  // Navigation
+  {
+    type: 'tabs',
+    name: 'Tabs',
+    description: 'Tab navigation',
+    category: 'navigation',
+    icon: '📑',
+    defaultProps: {
+      tabs: ['Tab 1', 'Tab 2', 'Tab 3'],
+      activeIndex: 0,
+    },
+    propSchema: {
+      tabs: { type: 'array' },
+      activeIndex: { type: 'number' },
+    },
+  },
+  {
+    type: 'modal',
+    name: 'Modal',
+    description: 'Modal dialog',
+    category: 'navigation',
+    icon: '🪟',
+    defaultProps: {
+      title: 'Modal Title',
+      triggerLabel: 'Open Modal',
+    },
+    propSchema: {
+      title: { type: 'string', required: true },
+      triggerLabel: { type: 'string' },
+      size: { type: 'select', options: ['sm', 'md', 'lg', 'full'] },
+    },
+  },
+  {
+    type: 'bottom-sheet',
+    name: 'Bottom Sheet',
+    description: 'Sliding bottom panel',
+    category: 'navigation',
+    icon: '⬆️',
+    defaultProps: {
+      title: 'Sheet Title',
+      snapPoints: ['25%', '50%', '90%'],
+    },
+    propSchema: {
+      title: { type: 'string' },
+      snapPoints: { type: 'array' },
+    },
+  },
+  {
+    type: 'carousel',
+    name: 'Carousel',
+    description: 'Image/content carousel',
+    category: 'navigation',
+    icon: '🎠',
+    defaultProps: {
+      autoPlay: true,
+      showDots: true,
+    },
+    propSchema: {
+      autoPlay: { type: 'boolean' },
+      showDots: { type: 'boolean' },
+      interval: { type: 'number' },
+    },
+  },
+  // Forms
+  {
+    type: 'dropdown',
+    name: 'Dropdown',
+    description: 'Select dropdown',
+    category: 'forms',
+    icon: '📂',
+    defaultProps: {
+      placeholder: 'Select option',
+      options: ['Option 1', 'Option 2', 'Option 3'],
+    },
+    propSchema: {
+      placeholder: { type: 'string' },
+      options: { type: 'array' },
+      label: { type: 'string' },
+    },
+  },
+  {
+    type: 'datepicker',
+    name: 'Date Picker',
+    description: 'Date selection',
+    category: 'forms',
+    icon: '📅',
+    defaultProps: {
+      placeholder: 'Select date',
+      format: 'yyyy-MM-dd',
+    },
+    propSchema: {
+      placeholder: { type: 'string' },
+      format: { type: 'string' },
+      minDate: { type: 'string' },
+      maxDate: { type: 'string' },
+    },
+  },
+  {
+    type: 'slider',
+    name: 'Slider',
+    description: 'Range slider',
+    category: 'forms',
+    icon: '🎚️',
+    defaultProps: {
+      min: 0,
+      max: 100,
+      value: 50,
+      step: 1,
+    },
+    propSchema: {
+      min: { type: 'number' },
+      max: { type: 'number' },
+      value: { type: 'number' },
+      step: { type: 'number' },
+      label: { type: 'string' },
+    },
+  },
+  {
+    type: 'rating',
+    name: 'Rating',
+    description: 'Star rating',
+    category: 'forms',
+    icon: '⭐',
+    defaultProps: {
+      max: 5,
+      value: 3,
+      allowHalf: true,
+    },
+    propSchema: {
+      max: { type: 'number' },
+      value: { type: 'number' },
+      allowHalf: { type: 'boolean' },
+      readOnly: { type: 'boolean' },
+    },
+  },
+  // Data Display
+  {
+    type: 'table',
+    name: 'Table',
+    description: 'Data table',
+    category: 'data',
+    icon: '📊',
+    defaultProps: {
+      columns: ['Name', 'Email', 'Status'],
+      rows: [
+        ['John Doe', 'john@example.com', 'Active'],
+        ['Jane Smith', 'jane@example.com', 'Pending'],
+      ],
+    },
+    propSchema: {
+      columns: { type: 'array' },
+      rows: { type: 'array' },
+      sortable: { type: 'boolean' },
+      filterable: { type: 'boolean' },
+    },
+  },
+  {
+    type: 'chart',
+    name: 'Chart',
+    description: 'Data visualization',
+    category: 'data',
+    icon: '📈',
+    defaultProps: {
+      type: 'bar',
+      data: [10, 25, 15, 30, 20],
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+    },
+    propSchema: {
+      type: { type: 'select', options: ['bar', 'line', 'pie', 'doughnut'] },
+      data: { type: 'array' },
+      labels: { type: 'array' },
+      title: { type: 'string' },
+    },
+  },
+  {
+    type: 'calendar',
+    name: 'Calendar',
+    description: 'Calendar view',
+    category: 'data',
+    icon: '🗓️',
+    defaultProps: {
+      view: 'month',
+      showEvents: true,
+    },
+    propSchema: {
+      view: { type: 'select', options: ['day', 'week', 'month'] },
+      showEvents: { type: 'boolean' },
+    },
+  },
+  {
+    type: 'timeline',
+    name: 'Timeline',
+    description: 'Event timeline',
+    category: 'data',
+    icon: '📜',
+    defaultProps: {
+      events: [
+        { title: 'Event 1', date: '2024-01-01' },
+        { title: 'Event 2', date: '2024-02-15' },
+      ],
+    },
+    propSchema: {
+      events: { type: 'array' },
+      orientation: { type: 'select', options: ['vertical', 'horizontal'] },
+    },
+  },
+  // Media
+  {
+    type: 'video',
+    name: 'Video',
+    description: 'Video player',
+    category: 'media',
+    icon: '🎬',
+    defaultProps: {
+      src: 'https://example.com/video.mp4',
+      autoPlay: false,
+      controls: true,
+    },
+    propSchema: {
+      src: { type: 'string', required: true },
+      autoPlay: { type: 'boolean' },
+      controls: { type: 'boolean' },
+      loop: { type: 'boolean' },
+    },
+  },
+  {
+    type: 'audio',
+    name: 'Audio',
+    description: 'Audio player',
+    category: 'media',
+    icon: '🎵',
+    defaultProps: {
+      src: 'https://example.com/audio.mp3',
+      controls: true,
+    },
+    propSchema: {
+      src: { type: 'string', required: true },
+      controls: { type: 'boolean' },
+      autoPlay: { type: 'boolean' },
+    },
+  },
+  {
+    type: 'map',
+    name: 'Map',
+    description: 'Interactive map',
+    category: 'media',
+    icon: '🗺️',
+    defaultProps: {
+      latitude: 40.7128,
+      longitude: -74.0060,
+      zoom: 12,
+    },
+    propSchema: {
+      latitude: { type: 'number', required: true },
+      longitude: { type: 'number', required: true },
+      zoom: { type: 'number' },
+      showMarker: { type: 'boolean' },
+    },
+  },
+  // Device/Native
+  {
+    type: 'camera',
+    name: 'Camera',
+    description: 'Camera capture',
+    category: 'device',
+    icon: '📷',
+    defaultProps: {
+      mode: 'photo',
+      facing: 'back',
+    },
+    propSchema: {
+      mode: { type: 'select', options: ['photo', 'video'] },
+      facing: { type: 'select', options: ['front', 'back'] },
+    },
+  },
+  {
+    type: 'qrcode',
+    name: 'QR Code',
+    description: 'QR code display/scanner',
+    category: 'device',
+    icon: '📱',
+    defaultProps: {
+      value: 'https://hublab.dev',
+      size: 200,
+    },
+    propSchema: {
+      value: { type: 'string', required: true },
+      size: { type: 'number' },
+      mode: { type: 'select', options: ['display', 'scanner'] },
+    },
+  },
+  {
+    type: 'biometrics',
+    name: 'Biometrics',
+    description: 'Face ID / Fingerprint',
+    category: 'device',
+    icon: '👆',
+    defaultProps: {
+      type: 'any',
+      fallbackLabel: 'Use passcode',
+    },
+    propSchema: {
+      type: { type: 'select', options: ['any', 'face', 'fingerprint'] },
+      fallbackLabel: { type: 'string' },
+    },
+  },
+  // Advanced
+  {
+    type: 'chat',
+    name: 'Chat',
+    description: 'Chat interface',
+    category: 'advanced',
+    icon: '💬',
+    defaultProps: {
+      placeholder: 'Type a message...',
+      showAvatar: true,
+    },
+    propSchema: {
+      placeholder: { type: 'string' },
+      showAvatar: { type: 'boolean' },
+      showTimestamp: { type: 'boolean' },
+    },
+  },
+  {
+    type: 'kanban',
+    name: 'Kanban',
+    description: 'Kanban board',
+    category: 'advanced',
+    icon: '📋',
+    defaultProps: {
+      columns: ['To Do', 'In Progress', 'Done'],
+      cards: [],
+    },
+    propSchema: {
+      columns: { type: 'array' },
+      cards: { type: 'array' },
+      allowDrag: { type: 'boolean' },
+    },
+  },
+  {
+    type: 'signature',
+    name: 'Signature',
+    description: 'Signature pad',
+    category: 'advanced',
+    icon: '✍️',
+    defaultProps: {
+      strokeColor: '#000000',
+      strokeWidth: 2,
+    },
+    propSchema: {
+      strokeColor: { type: 'string' },
+      strokeWidth: { type: 'number' },
+      backgroundColor: { type: 'string' },
+    },
+  },
+  {
+    type: 'rich-text-editor',
+    name: 'Rich Text Editor',
+    description: 'WYSIWYG editor',
+    category: 'advanced',
+    icon: '📄',
+    defaultProps: {
+      placeholder: 'Start writing...',
+      toolbar: ['bold', 'italic', 'underline', 'link'],
+    },
+    propSchema: {
+      placeholder: { type: 'string' },
+      toolbar: { type: 'array' },
+      initialContent: { type: 'string' },
+    },
+  },
+  // Auth
+  {
+    type: 'auth-screen',
+    name: 'Auth Screen',
+    description: 'Login/Register screen',
+    category: 'auth',
+    icon: '🔐',
+    defaultProps: {
+      mode: 'login',
+      providers: ['email', 'google', 'apple'],
+    },
+    propSchema: {
+      mode: { type: 'select', options: ['login', 'register', 'forgot'] },
+      providers: { type: 'array' },
+      showLogo: { type: 'boolean' },
+    },
+  },
 ] as const
 
 export type CapsuleType = typeof CAPSULE_DEFINITIONS[number]['type']
