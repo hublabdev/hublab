@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState } from 'react'
-import Link from 'next/link'
 import {
   IconApple,
   IconAndroid,
@@ -246,25 +245,15 @@ export default function LandingPage() {
             </div>
 
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-2 rounded-lg bg-foreground text-background px-6 py-3 text-sm font-medium hover:bg-foreground/90 transition-colors"
-              >
-                Try Demo Now
-                <IconChevronRight size={16} />
-              </Link>
               <a
                 href="https://github.com/hublabdev/hublab"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-lg border border-border px-6 py-3 text-sm font-medium hover:bg-muted transition-colors"
+                className="flex items-center gap-2 rounded-lg bg-foreground text-background px-6 py-3 text-sm font-medium hover:bg-foreground/90 transition-colors"
               >
                 <IconGitHub size={16} />
-                Star on GitHub
-                <span className="flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs">
-                  <IconStar size={12} />
-                  1.2k
-                </span>
+                View on GitHub
+                <IconChevronRight size={16} />
               </a>
             </div>
 
@@ -435,13 +424,15 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-8 text-center">
-            <Link
-              href="/dashboard/capsules"
+            <a
+              href="https://github.com/hublabdev/hublab/tree/main/lib/capsules"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-primary hover:underline"
             >
-              Explore all capsules
+              Explore all capsules on GitHub
               <IconChevronRight size={16} />
-            </Link>
+            </a>
           </div>
         </div>
       </section>
@@ -530,19 +521,16 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/dashboard"
+            <a
+              href="https://github.com/hublabdev/hublab"
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-2 rounded-lg bg-primary px-8 py-4 text-lg font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25"
             >
-              Start Building Free
+              <IconGitHub size={20} />
+              Star on GitHub
               <IconChevronRight size={20} />
-            </Link>
-            <Link
-              href="/docs"
-              className="flex items-center gap-2 rounded-lg border border-border px-8 py-4 text-lg font-medium hover:bg-muted transition-colors"
-            >
-              Read Documentation
-            </Link>
+            </a>
           </div>
 
           <p className="mt-8 text-sm text-muted-foreground">
