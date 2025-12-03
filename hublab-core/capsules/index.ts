@@ -86,6 +86,14 @@ export { BiometricsCapsule } from './biometrics'
 export { LocationCapsule } from './location'
 export { CameraCapsule } from './camera'
 export { SocialShareCapsule } from './social-share'
+export { ConfettiCapsule } from './confetti'
+
+// Marketing & Business Components
+export { PricingCardCapsule } from './pricing-card'
+export { TestimonialCapsule } from './testimonial'
+export { StatCardCapsule } from './stat-card'
+export { FeatureCardCapsule } from './feature-card'
+export { EmptyStateCapsule } from './empty-state'
 
 // Capsule Registry
 import type { CapsuleDefinition } from './types'
@@ -142,6 +150,12 @@ import { BiometricsCapsule } from './biometrics'
 import { LocationCapsule } from './location'
 import { CameraCapsule } from './camera'
 import { SocialShareCapsule } from './social-share'
+import { ConfettiCapsule } from './confetti'
+import { PricingCardCapsule } from './pricing-card'
+import { TestimonialCapsule } from './testimonial'
+import { StatCardCapsule } from './stat-card'
+import { FeatureCardCapsule } from './feature-card'
+import { EmptyStateCapsule } from './empty-state'
 
 const capsuleRegistry = new Map<string, CapsuleDefinition>()
 
@@ -231,6 +245,14 @@ const builtInCapsules: CapsuleDefinition[] = [
   LocationCapsule,
   CameraCapsule,
   SocialShareCapsule,
+  ConfettiCapsule,
+
+  // Marketing & Business Components
+  PricingCardCapsule,
+  TestimonialCapsule,
+  StatCardCapsule,
+  FeatureCardCapsule,
+  EmptyStateCapsule,
 ]
 
 builtInCapsules.forEach(capsule => {
