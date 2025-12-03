@@ -95,6 +95,18 @@ export { StatCardCapsule } from './stat-card'
 export { FeatureCardCapsule } from './feature-card'
 export { EmptyStateCapsule } from './empty-state'
 
+// New Capsules (v1.1)
+export { BreadcrumbCapsule } from './breadcrumb'
+export { CountdownCapsule } from './countdown'
+export { OTPInputCapsule } from './otp-input'
+export { ParallaxCapsule } from './parallax'
+export { DrawerCapsule } from './drawer'
+export { FABCapsule } from './fab'
+export { SegmentedControlCapsule } from './segmented-control'
+export { LottieCapsule } from './lottie'
+export { MarqueeCapsule } from './marquee'
+export { GradientTextCapsule } from './gradient-text'
+
 // Capsule Registry
 import type { CapsuleDefinition } from './types'
 import { ButtonCapsule } from './button'
@@ -156,6 +168,16 @@ import { TestimonialCapsule } from './testimonial'
 import { StatCardCapsule } from './stat-card'
 import { FeatureCardCapsule } from './feature-card'
 import { EmptyStateCapsule } from './empty-state'
+import { BreadcrumbCapsule } from './breadcrumb'
+import { CountdownCapsule } from './countdown'
+import { OTPInputCapsule } from './otp-input'
+import { ParallaxCapsule } from './parallax'
+import { DrawerCapsule } from './drawer'
+import { FABCapsule } from './fab'
+import { SegmentedControlCapsule } from './segmented-control'
+import { LottieCapsule } from './lottie'
+import { MarqueeCapsule } from './marquee'
+import { GradientTextCapsule } from './gradient-text'
 
 const capsuleRegistry = new Map<string, CapsuleDefinition>()
 
@@ -253,6 +275,18 @@ const builtInCapsules: CapsuleDefinition[] = [
   StatCardCapsule,
   FeatureCardCapsule,
   EmptyStateCapsule,
+
+  // New Capsules (v1.1)
+  BreadcrumbCapsule,
+  CountdownCapsule,
+  OTPInputCapsule,
+  ParallaxCapsule,
+  DrawerCapsule,
+  FABCapsule,
+  SegmentedControlCapsule,
+  LottieCapsule,
+  MarqueeCapsule,
+  GradientTextCapsule,
 ]
 
 builtInCapsules.forEach(capsule => {
