@@ -60,7 +60,22 @@ const DOCS_SECTIONS = [
 ]
 
 type SidebarSection = 'design' | 'templates' | 'capsules' | 'docs'
-type CapsuleInstance = { id: string; type: string; icon: string; name: string }
+type CapsuleProps = Record<string, string | number | boolean>
+type CapsuleInstance = { id: string; type: string; icon: string; name: string; props: CapsuleProps }
+
+// Default props for each capsule type
+const DEFAULT_PROPS: Record<string, CapsuleProps> = {
+  button: { text: 'Click Me', variant: 'primary', disabled: false },
+  text: { content: 'Hello World', size: 'md', bold: false },
+  input: { placeholder: 'Type something...', label: '', required: false },
+  card: { title: 'Card Title', description: 'Card description goes here' },
+  image: { src: '', alt: 'Image', rounded: true },
+  list: { items: 3, showDivider: true },
+  switch: { label: 'Toggle Option', checked: true },
+  progress: { value: 75, showLabel: true },
+  chart: { type: 'bar', title: 'Chart' },
+  navigation: { items: 'Home,Search,Profile' },
+}
 
 export default function AppPanel() {
   const router = useRouter()
@@ -73,6 +88,9 @@ export default function AppPanel() {
   const [showExportModal, setShowExportModal] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [exportPlatform, setExportPlatform] = useState<string | null>(null)
+  const [selectedCapsuleId, setSelectedCapsuleId] = useState<string | null>(null)
+
+  const selectedCapsule = canvasCapsules.find(c => c.id === selectedCapsuleId)
 
   const categories = ['all', ...new Set(ALL_CAPSULES.map(c => c.category))]
 
@@ -88,12 +106,23 @@ export default function AppPanel() {
       type: capsule.id,
       icon: capsule.icon,
       name: capsule.name,
+      props: DEFAULT_PROPS[capsule.id] ? { ...DEFAULT_PROPS[capsule.id] } : {},
     }
     setCanvasCapsules([...canvasCapsules, newCapsule])
+    setSelectedCapsuleId(newCapsule.id) // Auto-select new capsule
   }
 
   const handleRemoveCapsule = (id: string) => {
     setCanvasCapsules(canvasCapsules.filter(c => c.id !== id))
+    if (selectedCapsuleId === id) setSelectedCapsuleId(null)
+  }
+
+  const handleUpdateCapsuleProp = (capsuleId: string, propName: string, value: string | number | boolean) => {
+    setCanvasCapsules(canvasCapsules.map(c =>
+      c.id === capsuleId
+        ? { ...c, props: { ...c.props, [propName]: value } }
+        : c
+    ))
   }
 
   const handleLoadTemplate = (templateId: string) => {
@@ -102,10 +131,10 @@ export default function AppPanel() {
       setProjectName(template.name)
       // Simulate loading template capsules
       const sampleCapsules: CapsuleInstance[] = [
-        { id: 'nav_1', type: 'navigation', icon: '🧭', name: 'Navigation' },
-        { id: 'text_1', type: 'text', icon: '📝', name: 'Text' },
-        { id: 'card_1', type: 'card', icon: '🃏', name: 'Card' },
-        { id: 'button_1', type: 'button', icon: '🔘', name: 'Button' },
+        { id: 'nav_1', type: 'navigation', icon: '🧭', name: 'Navigation', props: DEFAULT_PROPS.navigation || {} },
+        { id: 'text_1', type: 'text', icon: '📝', name: 'Text', props: DEFAULT_PROPS.text || {} },
+        { id: 'card_1', type: 'card', icon: '🃏', name: 'Card', props: DEFAULT_PROPS.card || {} },
+        { id: 'button_1', type: 'button', icon: '🔘', name: 'Button', props: DEFAULT_PROPS.button || {} },
       ]
       setCanvasCapsules(sampleCapsules)
       setActiveSection('design')
@@ -553,51 +582,69 @@ ${platform === 'desktop' ? `1. Run \`npm install\`
                       canvasCapsules.map((capsule, index) => (
                         <div
                           key={capsule.id}
-                          className="animate-fadeIn"
+                          onClick={() => setSelectedCapsuleId(capsule.id)}
+                          className={`animate-fadeIn cursor-pointer relative group ${
+                            selectedCapsuleId === capsule.id ? 'ring-2 ring-blue-500 ring-offset-2 rounded-xl' : ''
+                          }`}
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
-                          {/* Render different capsule previews */}
+                          {/* Delete button on hover */}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleRemoveCapsule(capsule.id); }}
+                            className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-center justify-center"
+                          >
+                            ×
+                          </button>
+                          {/* Render different capsule previews with editable props */}
                           {capsule.type === 'navigation' && (
                             <div className="flex justify-around py-2 bg-gray-100 rounded-lg">
-                              {['Home', 'Search', 'Profile'].map(t => (
-                                <span key={t} className="text-xs text-gray-600">{t}</span>
+                              {(String(capsule.props?.items || 'Home,Search,Profile')).split(',').map(t => (
+                                <span key={t} className="text-xs text-gray-600">{t.trim()}</span>
                               ))}
                             </div>
                           )}
                           {capsule.type === 'text' && (
                             <div className="py-2">
-                              <div className="text-lg font-bold text-gray-900">Hello World</div>
-                              <div className="text-sm text-gray-500">This is a text component</div>
+                              <div className={`text-gray-900 ${capsule.props?.bold ? 'font-bold' : ''} ${capsule.props?.size === 'lg' ? 'text-xl' : capsule.props?.size === 'sm' ? 'text-sm' : 'text-lg'}`}>
+                                {String(capsule.props?.content || 'Hello World')}
+                              </div>
                             </div>
                           )}
                           {capsule.type === 'button' && (
-                            <button className="w-full py-3 bg-blue-500 text-white rounded-xl font-medium">
-                              Click Me
+                            <button className={`w-full py-3 rounded-xl font-medium ${
+                              capsule.props?.variant === 'secondary' ? 'bg-gray-200 text-gray-800' :
+                              capsule.props?.variant === 'outline' ? 'border-2 border-blue-500 text-blue-500 bg-white' :
+                              'bg-blue-500 text-white'
+                            } ${capsule.props?.disabled ? 'opacity-50' : ''}`}>
+                              {String(capsule.props?.text || 'Click Me')}
                             </button>
                           )}
                           {capsule.type === 'card' && (
                             <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                               <div className="w-full h-24 bg-gray-200 rounded-lg mb-3" />
-                              <div className="font-medium text-gray-900">Card Title</div>
-                              <div className="text-xs text-gray-500">Card description goes here</div>
+                              <div className="font-medium text-gray-900">{String(capsule.props?.title || 'Card Title')}</div>
+                              <div className="text-xs text-gray-500">{String(capsule.props?.description || 'Card description')}</div>
                             </div>
                           )}
                           {capsule.type === 'input' && (
-                            <div className="bg-gray-100 rounded-xl px-4 py-3 text-gray-400 text-sm">
-                              Type something...
+                            <div>
+                              {capsule.props?.label && <label className="text-xs text-gray-600 mb-1 block">{String(capsule.props.label)}</label>}
+                              <div className="bg-gray-100 rounded-xl px-4 py-3 text-gray-400 text-sm">
+                                {String(capsule.props?.placeholder || 'Type something...')}
+                              </div>
                             </div>
                           )}
                           {capsule.type === 'image' && (
-                            <div className="w-full h-40 bg-gradient-to-br from-purple-200 to-blue-200 rounded-xl flex items-center justify-center">
+                            <div className={`w-full h-40 bg-gradient-to-br from-purple-200 to-blue-200 flex items-center justify-center ${capsule.props?.rounded ? 'rounded-xl' : ''}`}>
                               <span className="text-3xl">🖼️</span>
                             </div>
                           )}
                           {capsule.type === 'list' && (
                             <div className="space-y-2">
-                              {['Item 1', 'Item 2', 'Item 3'].map(item => (
-                                <div key={item} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                              {Array.from({ length: Number(capsule.props?.items) || 3 }).map((_, i) => (
+                                <div key={i} className={`flex items-center gap-2 p-2 bg-gray-50 rounded-lg ${capsule.props?.showDivider && i > 0 ? 'border-t border-gray-200' : ''}`}>
                                   <div className="w-8 h-8 bg-gray-200 rounded" />
-                                  <span className="text-sm text-gray-700">{item}</span>
+                                  <span className="text-sm text-gray-700">Item {i + 1}</span>
                                 </div>
                               ))}
                             </div>
@@ -611,20 +658,22 @@ ${platform === 'desktop' ? `1. Run \`npm install\`
                           )}
                           {capsule.type === 'switch' && (
                             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                              <span className="text-sm text-gray-700">Toggle Option</span>
-                              <div className="w-12 h-6 bg-blue-500 rounded-full p-1">
-                                <div className="w-4 h-4 bg-white rounded-full ml-auto" />
+                              <span className="text-sm text-gray-700">{String(capsule.props?.label || 'Toggle')}</span>
+                              <div className={`w-12 h-6 rounded-full p-1 ${capsule.props?.checked ? 'bg-blue-500' : 'bg-gray-300'}`}>
+                                <div className={`w-4 h-4 bg-white rounded-full transition-all ${capsule.props?.checked ? 'ml-auto' : ''}`} />
                               </div>
                             </div>
                           )}
                           {capsule.type === 'progress' && (
                             <div className="space-y-2">
-                              <div className="flex justify-between text-xs text-gray-500">
-                                <span>Progress</span>
-                                <span>75%</span>
-                              </div>
+                              {capsule.props?.showLabel && (
+                                <div className="flex justify-between text-xs text-gray-500">
+                                  <span>Progress</span>
+                                  <span>{capsule.props?.value || 75}%</span>
+                                </div>
+                              )}
                               <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                                <div className="h-full w-3/4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full" />
+                                <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full" style={{ width: `${capsule.props?.value || 75}%` }} />
                               </div>
                             </div>
                           )}
@@ -660,6 +709,266 @@ ${platform === 'desktop' ? `1. Run \`npm install\`
           </div>
         </div>
       </main>
+
+      {/* Properties Panel - Right Sidebar */}
+      {selectedCapsule && (
+        <aside className="w-72 bg-[#0f0f0f] border-l border-white/5 flex flex-col overflow-hidden">
+          <div className="p-4 border-b border-white/5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">{selectedCapsule.icon}</span>
+                <span className="font-medium">{selectedCapsule.name}</span>
+              </div>
+              <button
+                onClick={() => setSelectedCapsuleId(null)}
+                className="text-gray-500 hover:text-white"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="text-xs text-gray-500 uppercase tracking-wider">Properties</div>
+
+            {/* Dynamic props based on capsule type */}
+            {selectedCapsule.type === 'button' && (
+              <>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Button Text</label>
+                  <input
+                    type="text"
+                    value={String(selectedCapsule.props?.text || '')}
+                    onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'text', e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Variant</label>
+                  <select
+                    value={String(selectedCapsule.props?.variant || 'primary')}
+                    onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'variant', e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="primary">Primary</option>
+                    <option value="secondary">Secondary</option>
+                    <option value="outline">Outline</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(selectedCapsule.props?.disabled)}
+                    onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'disabled', e.target.checked)}
+                    className="rounded"
+                  />
+                  <label className="text-sm text-gray-400">Disabled</label>
+                </div>
+              </>
+            )}
+
+            {selectedCapsule.type === 'text' && (
+              <>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Content</label>
+                  <textarea
+                    value={String(selectedCapsule.props?.content || '')}
+                    onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'content', e.target.value)}
+                    rows={3}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Size</label>
+                  <select
+                    value={String(selectedCapsule.props?.size || 'md')}
+                    onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'size', e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="sm">Small</option>
+                    <option value="md">Medium</option>
+                    <option value="lg">Large</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(selectedCapsule.props?.bold)}
+                    onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'bold', e.target.checked)}
+                    className="rounded"
+                  />
+                  <label className="text-sm text-gray-400">Bold</label>
+                </div>
+              </>
+            )}
+
+            {selectedCapsule.type === 'input' && (
+              <>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Label</label>
+                  <input
+                    type="text"
+                    value={String(selectedCapsule.props?.label || '')}
+                    onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'label', e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Placeholder</label>
+                  <input
+                    type="text"
+                    value={String(selectedCapsule.props?.placeholder || '')}
+                    onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'placeholder', e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(selectedCapsule.props?.required)}
+                    onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'required', e.target.checked)}
+                    className="rounded"
+                  />
+                  <label className="text-sm text-gray-400">Required</label>
+                </div>
+              </>
+            )}
+
+            {selectedCapsule.type === 'card' && (
+              <>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Title</label>
+                  <input
+                    type="text"
+                    value={String(selectedCapsule.props?.title || '')}
+                    onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'title', e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Description</label>
+                  <textarea
+                    value={String(selectedCapsule.props?.description || '')}
+                    onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'description', e.target.value)}
+                    rows={2}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 resize-none"
+                  />
+                </div>
+              </>
+            )}
+
+            {selectedCapsule.type === 'switch' && (
+              <>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Label</label>
+                  <input
+                    type="text"
+                    value={String(selectedCapsule.props?.label || '')}
+                    onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'label', e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(selectedCapsule.props?.checked)}
+                    onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'checked', e.target.checked)}
+                    className="rounded"
+                  />
+                  <label className="text-sm text-gray-400">Default On</label>
+                </div>
+              </>
+            )}
+
+            {selectedCapsule.type === 'progress' && (
+              <>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Value ({selectedCapsule.props?.value || 75}%)</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={Number(selectedCapsule.props?.value || 75)}
+                    onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'value', parseInt(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(selectedCapsule.props?.showLabel)}
+                    onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'showLabel', e.target.checked)}
+                    className="rounded"
+                  />
+                  <label className="text-sm text-gray-400">Show Label</label>
+                </div>
+              </>
+            )}
+
+            {selectedCapsule.type === 'navigation' && (
+              <div>
+                <label className="text-xs text-gray-400 block mb-1">Items (comma separated)</label>
+                <input
+                  type="text"
+                  value={String(selectedCapsule.props?.items || 'Home,Search,Profile')}
+                  onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'items', e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            )}
+
+            {selectedCapsule.type === 'list' && (
+              <>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Number of Items</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={Number(selectedCapsule.props?.items || 3)}
+                    onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'items', parseInt(e.target.value))}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(selectedCapsule.props?.showDivider)}
+                    onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'showDivider', e.target.checked)}
+                    className="rounded"
+                  />
+                  <label className="text-sm text-gray-400">Show Dividers</label>
+                </div>
+              </>
+            )}
+
+            {selectedCapsule.type === 'image' && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={Boolean(selectedCapsule.props?.rounded)}
+                  onChange={(e) => handleUpdateCapsuleProp(selectedCapsule.id, 'rounded', e.target.checked)}
+                  className="rounded"
+                />
+                <label className="text-sm text-gray-400">Rounded Corners</label>
+              </div>
+            )}
+
+            {/* Delete button */}
+            <div className="pt-4 border-t border-white/10">
+              <button
+                onClick={() => handleRemoveCapsule(selectedCapsule.id)}
+                className="w-full py-2 text-red-400 hover:text-red-300 text-sm flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete Component
+              </button>
+            </div>
+          </div>
+        </aside>
+      )}
 
       {/* Export Modal */}
       {showExportModal && (
