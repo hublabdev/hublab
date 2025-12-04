@@ -1,35 +1,39 @@
 # HubLab
 
-**Universal App Compiler** - Generate native iOS, Android, and Web apps from a single prompt.
+**Visual App Builder** - Create native iOS, Android, Web & Desktop apps without code.
+
+[Live Demo](https://hublab.dev) | [Documentation](#documentation) | [Capsules](#capsules) | [Templates](#templates)
 
 ```
-Prompt: "Shopping list app with family sync"
-                    |
-               [HubLab]
-                    |
-    +---------------+---------------+
-    |               |               |
-   Web            iOS           Android
- (React)       (SwiftUI)   (Jetpack Compose)
-    |               |               |
- Vercel        App Store       Play Store
+    Your Design                    Native Apps
+        |                              |
+   [HubLab Editor]  ───────>   +------+------+------+
+        |                      |      |      |      |
+   Drag & Drop              iOS   Android  Web  Desktop
+   Capsules               SwiftUI  Kotlin  React  Tauri
 ```
 
-## Key Differentiator
+## Features
 
-**We generate REAL native code**, not wrappers:
-
-| Feature | HubLab | Flutter | React Native |
-|---------|--------|---------|--------------|
-| 100% Native Code | Yes | No (Dart) | No (JS Bridge) |
-| Native Performance | Yes | ~90% | ~80% |
-| Full Native API Access | Yes | Partial | Partial |
-| Native Look & Feel | Yes | Custom | Custom |
+- **Visual Editor** - Drag-and-drop interface builder
+- **Real Native Code** - Generates SwiftUI, Kotlin, React (not wrappers)
+- **AI Assistant** - Generate UI from natural language with Groq AI
+- **Multi-Screen Apps** - Create complete multi-page applications
+- **Live Preview** - See code output in real-time
+- **One-Click Export** - Download ready-to-compile projects
+- **8 Templates** - Pre-built app templates to start fast
+- **24 Capsules** - Pre-built native components
 
 ## Quick Start
 
+Visit [hublab.dev](https://hublab.dev) and start building immediately. No account required.
+
+### Local Development
+
 ```bash
-# Install
+# Clone & Install
+git clone https://github.com/yourusername/hublab.git
+cd hublab
 npm install
 
 # Development
@@ -37,183 +41,251 @@ npm run dev
 
 # Build
 npm run build
+
+# Test
+npm run test
 ```
 
-## API Usage
+## Documentation
 
-### Export Native Apps
+### Editor Interface
 
-```http
-POST /api/v1/projects/{id}/export-native
-Content-Type: application/json
+```
++----------------+------------------+------------------+
+|                |                  |                  |
+|   Sidebar      |    Canvas        |   Properties     |
+|   - Capsules   |    - Preview     |   - Config       |
+|   - Screens    |    - Drag/Drop   |   - Styling      |
+|   - Templates  |                  |   - Actions      |
+|                |                  |                  |
++----------------+------------------+------------------+
+```
 
-{
-  "targets": [
-    {
-      "platform": "ios",
-      "options": {
-        "bundleId": "com.mycompany.myapp",
-        "minVersion": "15.0"
-      }
-    },
-    {
-      "platform": "android",
-      "options": {
-        "packageName": "com.mycompany.myapp",
-        "minSdk": 24
-      }
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Z` | Undo |
+| `Ctrl+Y` | Redo |
+| `Delete` | Remove selected capsule |
+| `Escape` | Close modals / Deselect |
+
+### AI Assistant
+
+Click the AI button or use the chat panel to generate UI:
+
+```
+"Create a login form with email and password"
+"Add a navigation bar with 4 tabs"
+"Build a product card with image, title and price"
+```
+
+Powered by Groq AI for fast generation.
+
+## Capsules
+
+Capsules are pre-built native components. Each generates real native code for every platform.
+
+### UI Components
+| Capsule | Icon | Platforms |
+|---------|------|-----------|
+| Button | 🔘 | Web, iOS, Android, Desktop |
+| Text | 📝 | Web, iOS, Android, Desktop |
+| Input | ✏️ | Web, iOS, Android, Desktop |
+| Card | 🃏 | Web, iOS, Android, Desktop |
+| Image | 🖼️ | Web, iOS, Android, Desktop |
+
+### Layout & Navigation
+| Capsule | Icon | Platforms |
+|---------|------|-----------|
+| List | 📋 | Web, iOS, Android, Desktop |
+| Modal | 🪟 | Web, iOS, Android, Desktop |
+| Navigation | 🧭 | Web, iOS, Android, Desktop |
+| Tabs | 📑 | Web, iOS, Android, Desktop |
+| Accordion | 🪗 | Web, iOS, Android, Desktop |
+
+### Forms
+| Capsule | Icon | Platforms |
+|---------|------|-----------|
+| Form | 📋 | Web, iOS, Android, Desktop |
+| Switch | 🔀 | Web, iOS, Android, Desktop |
+| Slider | 🎚️ | Web, iOS, Android, Desktop |
+| Dropdown | 📂 | Web, iOS, Android, Desktop |
+| Date Picker | 📅 | Web, iOS, Android, Desktop |
+
+### Data & Charts
+| Capsule | Icon | Platforms |
+|---------|------|-----------|
+| Chart | 📊 | Web, iOS, Android, Desktop |
+| Table | 📋 | Web, iOS, Android, Desktop |
+| Progress | ⏳ | Web, iOS, Android, Desktop |
+
+### Media
+| Capsule | Icon | Platforms |
+|---------|------|-----------|
+| Video | 🎬 | Web, iOS, Android, Desktop |
+| Audio | 🎵 | Web, iOS, Android, Desktop |
+| Carousel | 🎠 | Web, iOS, Android, Desktop |
+
+### Native APIs
+| Capsule | Icon | Platforms |
+|---------|------|-----------|
+| Camera | 📷 | iOS, Android |
+| Location | 📍 | iOS, Android |
+| Biometrics | 🔐 | iOS, Android |
+| Notifications | 🔔 | iOS, Android |
+
+## Templates
+
+Start with a pre-built template and customize:
+
+| Template | Icon | Description | Capsules |
+|----------|------|-------------|----------|
+| FitTrack Pro | 💪 | Fitness app with workouts & stats | 16 |
+| FoodieSpot | 🍽️ | Restaurant ordering app | 19 |
+| TaskFlow | ✅ | Task manager with projects | 21 |
+| Melodify | 🎵 | Music streaming player | 15 |
+| SecureBank | 🏦 | Banking & finance app | 19 |
+| Wanderlust | ✈️ | Travel booking app | 21 |
+| ChatConnect | 💬 | Messaging app | 12 |
+| CookBook | 👨‍🍳 | Recipe & meal planning | 19 |
+
+## Export Formats
+
+### Supported Platforms
+
+| Platform | Framework | Output | Status |
+|----------|-----------|--------|--------|
+| Web | React/Next.js | `.tsx` files | Ready |
+| iOS | SwiftUI | Xcode project | Ready |
+| Android | Jetpack Compose | Android Studio project | Ready |
+| Desktop | Tauri | Cross-platform binary | Ready |
+
+### Generated Code Example
+
+**iOS (SwiftUI)**
+```swift
+struct HomeScreen: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            HubLabButton(text: "Get Started", variant: .primary) {
+                // Action
+            }
+            HubLabCard {
+                Text("Welcome to MyApp")
+            }
+        }
     }
-  ]
 }
 ```
 
-### Response
+**Android (Kotlin)**
+```kotlin
+@Composable
+fun HomeScreen() {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        HubLabButton(
+            text = "Get Started",
+            variant = ButtonVariant.Primary,
+            onClick = { /* Action */ }
+        )
+        HubLabCard {
+            Text("Welcome to MyApp")
+        }
+    }
+}
+```
+
+**Web (React)**
+```tsx
+export function HomeScreen() {
+    return (
+        <div className="flex flex-col gap-4">
+            <Button variant="primary" onClick={() => {}}>
+                Get Started
+            </Button>
+            <Card>
+                <p>Welcome to MyApp</p>
+            </Card>
+        </div>
+    )
+}
+```
+
+## Project Structure
+
+```
+hublab/
+├── app/
+│   ├── app/page.tsx       # Main editor
+│   ├── api/               # API routes
+│   │   ├── ai-generate/   # Groq AI endpoint
+│   │   ├── generate/      # Code generation
+│   │   └── schema/        # Capsule schema
+│   └── layout.tsx
+├── hublab-core/
+│   ├── capsules/          # Component definitions
+│   └── compiler/          # Platform compilers
+│       ├── ios/           # SwiftUI generator
+│       ├── android/       # Kotlin generator
+│       ├── web/           # React generator
+│       └── desktop/       # Tauri generator
+├── lib/
+│   ├── hooks/             # React hooks
+│   └── store/             # State management
+└── components/            # UI components
+```
+
+## Tech Stack
+
+- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
+- **AI**: Groq API (Mixtral)
+- **Export**: JSZip for project packaging
+- **Deployment**: Netlify
+
+## API Reference
+
+### GET /api/schema
+
+Returns all available capsules and their properties.
+
+### POST /api/ai-generate
+
+Generate UI from natural language prompt.
 
 ```json
 {
-  "success": true,
-  "exports": [
-    {
-      "platform": "ios",
-      "downloadUrl": "https://storage.hublab.dev/exports/.../MyApp-ios.zip",
-      "fileCount": 15
-    },
-    {
-      "platform": "android",
-      "downloadUrl": "https://storage.hublab.dev/exports/.../MyApp-android.zip",
-      "fileCount": 22
-    }
-  ]
+  "prompt": "Create a profile card with avatar and name",
+  "context": { "screens": [...] }
 }
 ```
 
-## Generated Output
+### POST /api/generate
 
-### iOS (SwiftUI)
+Generate native code for a specific platform.
 
-```
-MyApp/
-├── MyAppApp.swift          # Entry point
-├── ContentView.swift       # Root view
-├── Theme/Colors.swift      # Theme colors
-├── Components/             # Native SwiftUI components
-│   └── HubLabButton.swift
-├── Screens/
-│   └── HomeScreen.swift
-├── Assets.xcassets/
-├── Info.plist
-└── Package.swift
-```
-
-### Android (Jetpack Compose)
-
-```
-app/src/main/
-├── java/com/myapp/
-│   ├── MainActivity.kt
-│   ├── ui/theme/
-│   │   ├── Color.kt
-│   │   ├── Theme.kt
-│   │   └── Type.kt
-│   ├── ui/components/      # Native Compose components
-│   │   └── HubLabButton.kt
-│   └── ui/screens/
-│       └── HomeScreen.kt
-├── res/values/
-├── AndroidManifest.xml
-└── build.gradle.kts
-```
-
-## Architecture
-
-```
-lib/
-├── capsules/           # Multi-platform component definitions
-│   ├── types.ts        # Capsule type system
-│   └── button.ts       # Example: Button with Web/iOS/Android code
-│
-├── compiler/           # Platform-specific compilers
-│   ├── base.ts         # Base compiler classes
-│   ├── ios/            # SwiftUI code generator
-│   ├── android/        # Jetpack Compose code generator
-│   └── web/            # React code generator
-│
-└── types/              # API type definitions
-    └── api.ts
-```
-
-## Capsule System
-
-Each capsule contains **native code for every platform**:
-
-```typescript
-const ButtonCapsule = {
-  id: 'button',
-  props: [
-    { name: 'text', type: 'string', required: true },
-    { name: 'variant', type: 'select', options: ['primary', 'secondary'] },
-    { name: 'onPress', type: 'action', required: true }
-  ],
-
-  platforms: {
-    web: {
-      framework: 'react',
-      code: `function Button({ text, variant, onPress }) { ... }`
-    },
-    ios: {
-      framework: 'swiftui',
-      code: `struct HubLabButton: View { ... }`
-    },
-    android: {
-      framework: 'compose',
-      code: `@Composable fun HubLabButton(...) { ... }`
-    }
+```json
+{
+  "platform": "ios",
+  "screens": [...],
+  "settings": {
+    "projectName": "MyApp",
+    "themeColor": "#6366F1"
   }
 }
 ```
 
-## Supported Platforms
+## Environment Variables
 
-### Export Formats
+```env
+# Required for AI features
+GROQ_API_KEY=your_groq_api_key
 
-| Platform | Framework | Status |
-|----------|-----------|--------|
-| Web | React/Next.js | Ready |
-| Web | Vue | Ready |
-| iOS | SwiftUI | Ready |
-| iOS | UIKit | Planned |
-| Android | Jetpack Compose | Ready |
-| Android | XML | Planned |
-| Desktop | Tauri | Planned |
-| Desktop | Electron | Planned |
-
-### Deploy Targets
-
-| Platform | Target | Status |
-|----------|--------|--------|
-| Web | Vercel | Ready |
-| Web | Netlify | Ready |
-| iOS | App Store Connect | Planned |
-| iOS | TestFlight | Planned |
-| Android | Google Play | Planned |
-| Android | Firebase Distribution | Planned |
-
-## Roadmap
-
-### Phase 1: Core Capsules (Current)
-- [ ] Button, Text, Input, Card, List, Image
-- [ ] Form components
-- [ ] Navigation components
-
-### Phase 2: Compilation Testing
-- [ ] Xcode build verification
-- [ ] Android Studio build verification
-- [ ] CI/CD for native builds
-
-### Phase 3: Store Integration
-- [ ] App Store Connect API
-- [ ] Google Play Developer API
-- [ ] Automated signing/provisioning
+# Optional
+NEXT_PUBLIC_APP_URL=https://hublab.dev
+```
 
 ## Contributing
 
@@ -223,10 +295,17 @@ const ButtonCapsule = {
 4. Push to the branch (`git push origin feature/amazing`)
 5. Open a Pull Request
 
+### Adding New Capsules
+
+1. Define the capsule in `hublab-core/capsules/`
+2. Add platform-specific code generators
+3. Register in the ALL_CAPSULES array
+4. Test export for all platforms
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-Built with care by [HubLab](https://hublab.dev)
+Built with care at [hublab.dev](https://hublab.dev)
