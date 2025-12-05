@@ -7,7 +7,7 @@ import JSZip from 'jszip'
 import { MICRO_TEMPLATES, TEMPLATE_CATEGORIES, getTemplatesByCategory, searchTemplates, getTemplateById, type MicroTemplate } from '@/lib/micro-templates'
 import { ICON_STYLES, COLOR_PALETTES, generatePlaceholderIcon, getEmojiForKeyword } from '@/lib/icon-generator'
 // DnD Kit imports
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 // New modular components
@@ -1756,6 +1756,8 @@ export default function AppPanel() {
 
   // Mobile responsive state
   const [isMobile, setIsMobile] = useState(false)
+  const [isTablet, setIsTablet] = useState(false)
+  const [isLandscape, setIsLandscape] = useState(false)
   const [showMobileSidebar, setShowMobileSidebar] = useState(false)
   const [mobileActivePanel, setMobileActivePanel] = useState<'none' | 'capsules' | 'properties' | 'chat'>('none')
 
@@ -1764,27 +1766,30 @@ export default function AppPanel() {
   const [previewMode, setPreviewMode] = useState<'list' | 'visual'>('list')
   const [previewPlatformVisual, setPreviewPlatformVisual] = useState<'ios' | 'android' | 'web'>('ios')
 
-  // DnD Kit sensors
+  // Haptic feedback helper
+  const triggerHaptic = useCallback((pattern: number | number[] = 10) => {
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      navigator.vibrate(pattern)
+    }
+  }, [])
+
+  // DnD Kit sensors with improved touch support for mobile
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: isMobile ? 5 : 8, // Lower threshold for mobile
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 150, // Short delay to distinguish from scroll
+        tolerance: 10, // Allow some movement during delay
       },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   )
-
-  // DnD Kit handler
-  const handleDndDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    if (over && active.id !== over.id) {
-      const oldIndex = canvasCapsules.findIndex(c => c.id === active.id)
-      const newIndex = canvasCapsules.findIndex(c => c.id === over.id)
-      setCanvasCapsules(arrayMove(canvasCapsules, oldIndex, newIndex))
-    }
-  }
 
   // Get current screen's capsules
   const currentScreen = screens.find(s => s.id === currentScreenId) || screens[0]
@@ -1797,6 +1802,23 @@ export default function AppPanel() {
         : s
     ))
   }, [currentScreenId])
+
+  // DnD Kit handlers with haptic feedback
+  const handleDndDragStart = useCallback(() => {
+    triggerHaptic(15) // Short vibration on drag start
+  }, [triggerHaptic])
+
+  const handleDndDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event
+    if (over && active.id !== over.id) {
+      const oldIndex = canvasCapsules.findIndex(c => c.id === active.id)
+      const newIndex = canvasCapsules.findIndex(c => c.id === over.id)
+      setCanvasCapsules(arrayMove(canvasCapsules, oldIndex, newIndex))
+      triggerHaptic([10, 50, 10]) // Double pulse on successful reorder
+    } else {
+      triggerHaptic(5) // Light feedback on drop without change
+    }
+  }, [canvasCapsules, setCanvasCapsules, triggerHaptic])
 
   const selectedCapsule = canvasCapsules.find(c => c.id === selectedCapsuleId)
 
@@ -1837,18 +1859,32 @@ export default function AppPanel() {
     return () => clearTimeout(timer)
   }, [projectName, themeColor, appIcon, selectedPlatforms, screens, currentScreenId])
 
-  // Mobile detection
+  // Mobile, tablet, and orientation detection
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-      if (window.innerWidth >= 768) {
+    const checkDevice = () => {
+      const width = window.innerWidth
+      const height = window.innerHeight
+
+      // Device type detection
+      setIsMobile(width < 768)
+      setIsTablet(width >= 768 && width < 1024)
+      setIsLandscape(width > height)
+
+      // Reset panels when switching to desktop
+      if (width >= 768) {
         setShowMobileSidebar(false)
         setMobileActivePanel('none')
       }
     }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+
+    checkDevice()
+    window.addEventListener('resize', checkDevice)
+    window.addEventListener('orientationchange', checkDevice)
+
+    return () => {
+      window.removeEventListener('resize', checkDevice)
+      window.removeEventListener('orientationchange', checkDevice)
+    }
   }, [])
 
   // Keyboard shortcuts
@@ -2406,6 +2442,7 @@ Keep responses concise.` },
                   <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}
+                    onDragStart={handleDndDragStart}
                     onDragEnd={handleDndDragEnd}
                   >
                     <SortableContext
@@ -2717,10 +2754,20 @@ Keep responses concise.` },
           </header>
         )}
 
-        <div className={`flex-1 overflow-auto ${isMobile ? 'p-4' : 'p-8'} bg-[#050505]`}>
-          <div className="h-full flex items-center justify-center">
+        <div className={`flex-1 overflow-auto ${isMobile ? 'p-2' : isTablet ? 'p-4' : 'p-8'} bg-[#050505]`}>
+          <div className={`h-full flex items-center justify-center ${isTablet && isLandscape ? 'flex-row gap-6' : ''}`}>
             <div className="relative">
-              <div className={`${isMobile ? 'w-[280px] h-[560px]' : 'w-[320px] h-[640px]'} bg-gray-900 rounded-[40px] border-4 border-gray-800 shadow-2xl overflow-hidden`}>
+              {/* Responsive phone frame: smaller on mobile, medium on tablet, full on desktop */}
+              {/* Tablet landscape shows side-by-side preview */}
+              <div className={`${
+                isMobile
+                  ? 'w-[240px] h-[480px]'
+                  : isTablet && isLandscape
+                    ? 'w-[280px] h-[560px]'
+                    : isTablet
+                      ? 'w-[300px] h-[600px]'
+                      : 'w-[320px] h-[640px]'
+              } bg-gray-900 rounded-[40px] border-4 border-gray-800 shadow-2xl overflow-hidden transition-all duration-300`}>
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-black rounded-b-2xl z-10" />
                 <div className="w-full h-full bg-white overflow-y-auto">
                   <div className="h-12 flex items-center justify-center pt-2" style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)` }}>
